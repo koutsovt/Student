@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Build output
+prototype/dist/
+prototype/.vite/
+prototype/tsconfig.tsbuildinfo
+
+# Claude internals
+.claude/
+
+# Environment files
+.env
+.env.*
+*.local

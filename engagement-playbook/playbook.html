@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Conversational AI Engagement Playbook</title>
+    <style>
+      :root {
+        --accent: #2563EB;
+        --accent-soft: #DBEAFE;
+        --navy: #1E293B;
+        --surface: #FFFFFF;
+        --surface-soft: #F5F7FA;
+        --border: #E5E7EB;
+        --muted: #6B7280;
+        --success: #0F7B5C;
+        --success-soft: #D1FAE5;
+        --amber: #B45309;
+        --amber-soft: #FEF3C7;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0; padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        color: var(--navy);
+        font-size: 14px;
+        line-height: 1.6;
+        background: var(--surface);
+      }
+      .container { max-width: 1000px; margin: 0 auto; padding: 0 24px 80px; }
+
+      header.cover {
+        border-bottom: 3px solid var(--accent);
+        padding: 32px 0 18px;
+        margin-bottom: 28px;
+      }
+      .eyebrow {
+        font-size: 11px; font-weight: 600; letter-spacing: 0.20em;
+        text-transform: uppercase; color: var(--accent);
+      }
+      h1 { font-size: 30px; margin: 6px 0 8px; line-height: 1.15; }
+      .lead { max-width: 820px; color: rgba(30,41,59,0.85); font-size: 15px; }
+      .meta { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+      h2 {
+        font-size: 20px; margin: 44px 0 6px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid var(--accent-soft);
+        color: var(--navy);
+      }
+      h2 .num {
+        display: inline-block;
+        background: var(--accent);
+        color: #fff;
+        font-size: 11px; font-weight: 700;
+        width: 22px; height: 22px; border-radius: 50%;
+        text-align: center; line-height: 22px;
+        margin-right: 8px;
+        vertical-align: 2px;
+      }
+      h3 {
+        font-size: 13px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.10em; color: var(--muted);
+        margin: 20px 0 6px;
+      }
+      p { margin: 0 0 10px; }
+      ul { margin: 0 0 10px; padding-left: 20px; }
+      li { margin-bottom: 4px; }
+
+      .section-lead {
+        font-size: 13px; color: rgba(30,41,59,0.75);
+        margin: 0 0 18px;
+      }
+
+      .callout {
+        padding: 12px 16px;
+        margin: 14px 0;
+        border-radius: 0 6px 6px 0;
+        font-size: 13px;
+      }
+      .callout.navy {
+        background: var(--surface-soft);
+        border-left: 3px solid var(--navy);
+      }
+      .callout.accent {
+        background: var(--accent-soft);
+        border-left: 3px solid var(--accent);
+      }
+      .callout.success {
+        background: var(--success-soft);
+        border-left: 3px solid var(--success);
+      }
+      .callout.amber {
+        background: var(--amber-soft);
+        border-left: 3px solid var(--amber);
+      }
+      .callout strong { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+      .callout em { font-style: italic; color: var(--navy); }
+      .callout p { margin: 0 0 6px; }
+      .callout p:last-child { margin: 0; }
+      .callout ul { margin: 4px 0 0; }
+
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0; }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        background: var(--surface);
+      }
+      .card .label {
+        font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+      }
+      .card .value { font-size: 15px; font-weight: 700; color: var(--navy); }
+      .card .note { font-size: 12px; color: rgba(30,41,59,0.7); margin-top: 3px; }
+
+      .pattern-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 14px 0;
+      }
+      .pattern-card {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 10px 12px;
+        background: var(--surface-soft);
+      }
+      .pattern-card .pname { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+      .pattern-card .pkind { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+      .pattern-card .pjob { font-size: 11.5px; color: rgba(30,41,59,0.8); }
+
+      .routing-row {
+        display: flex; align-items: center; gap: 8px;
+        padding: 6px 0; border-bottom: 1px solid var(--border);
+        font-size: 12.5px;
+      }
+      .routing-row:last-child { border-bottom: none; }
+      .rtag {
+        font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+        text-transform: uppercase; padding: 2px 7px; border-radius: 999px;
+        white-space: nowrap;
+      }
+      .rtag.reactive { background: #DBEAFE; color: #1E40AF; }
+      .rtag.proactive { background: #D1FAE5; color: #065F46; }
+
+      code {
+        font-family: 'SF Mono', Menlo, monospace;
+        font-size: 11.5px;
+        background: var(--surface-soft);
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+
+      .toc {
+        background: var(--surface-soft);
+        border-left: 3px solid var(--navy);
+        padding: 14px 18px;
+        margin-bottom: 28px;
+        border-radius: 6px;
+      }
+      .toc h3 { margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 24px; font-size: 13px; }
+      .toc li { margin-bottom: 4px; break-inside: avoid; }
+      .toc a { color: var(--navy); text-decoration: none; }
+      .toc a:hover { color: var(--accent); text-decoration: underline; }
+
+      footer.foot {
+        margin-top: 60px; padding-top: 16px;
+        border-top: 1px solid var(--border);
+        font-size: 12px; color: var(--muted);
+        display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      }
+
+      @media print {
+        .toc { page-break-after: always; }
+        h2 { page-break-after: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+
+      <header class="cover">
+        <div class="eyebrow">Methodology · repeatable process for AI assistant projects</div>
+        <h1>Conversational AI Engagement Playbook</h1>
+        <p class="lead">
+          Eight phases — from reading a brief to handing a stakeholder a PDF — distilled from a completed
+          conversational-AI engagement. Each phase captures the thinking steps, the key outputs, and a
+          heuristic you can carry into the next project. The worked examples throughout come from a
+          higher-education chatbot replacement engagement and are presented generically.
+        </p>
+        <p class="meta">Version 1.0 · May 2026 · domain-neutral · no client data</p>
+      </header>
+
+      <div class="toc">
+        <h3>Phases</h3>
+        <ol>
+          <li><a href="#intake">Intake &amp; problem framing</a></li>
+          <li><a href="#patterns">Conversation pattern design</a></li>
+          <li><a href="#personas">Persona &amp; scenario design</a></li>
+          <li><a href="#research">Technical framework research</a></li>
+          <li><a href="#architecture">Architecture design</a></li>
+          <li><a href="#decisions">Decisions log</a></li>
+          <li><a href="#infra">Infrastructure documentation</a></li>
+          <li><a href="#briefing">Stakeholder briefing</a></li>
+        </ol>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="intake"><span class="num">1</span> Intake &amp; problem framing</h2>
+      <p class="section-lead">The most important 30 minutes of the engagement. Read the brief to extract the current system's <em>failure mode</em>, not just its feature list.</p>
+
+      <h3>What it is</h3>
+      <p>Before designing anything, you need one clear sentence that describes what the incumbent system does wrong — not what it lacks. Features can be added; a wrong model can only be replaced.</p>
+
+      <h3>Why it matters</h3>
+      <p>Every subsequent decision flows from the failure-mode statement. The conversation patterns you choose, the retrieval strategy, the memory model — all of them exist to solve the one thing the current system cannot. If you skip this step, you end up building a better version of the wrong thing.</p>
+
+      <div class="callout navy">
+        <strong>Worked example — higher-education chatbot</strong>
+        <p>The incumbent chatbot was an IBM Watson-based FAQ-matcher sitting on the institution's student portal. Students typed questions; the system matched to one of ~20 sample questions per FAQ article and returned the article.</p>
+        <p>The failure mode wasn't "not enough FAQs" — it was <strong>purpose-blindness</strong>. A question like "what is the student fee?" could mean: (a) I want to understand what it is, (b) I need to pay it, or (c) I'm eligible to defer it and want to know how. The incumbent answered all three identically — with the definition article — because it classified by topic, not by intent.</p>
+        <p>This one sentence unlocked everything: <em>"The surface query masks the real need — the system must classify intent before delivering content."</em></p>
+      </div>
+
+      <h3>How to run it</h3>
+      <ul>
+        <li>Read the brief twice: first for context, second specifically hunting for failure-mode evidence (user complaints, escalation rates, unsatisfied queries, workarounds)</li>
+        <li>Ask: what does the current system do when the student/user's real need differs from their surface query?</li>
+        <li>Resist the urge to jump to solutions — stay in the problem space until the failure mode is crisp</li>
+        <li>Write a single paragraph. If it takes more than a paragraph, the failure mode isn't clear yet</li>
+      </ul>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>One-paragraph failure-mode statement (the north star for the whole engagement)</li>
+        <li>List of the incumbent system's constraints that are worth preserving (integrations, brand voice, escalation paths)</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"The surface query masks the real need. Ask what's needed before answering."</em>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="patterns"><span class="num">2</span> Conversation pattern design</h2>
+      <p class="section-lead">Once you have the failure mode, design the conversation model. Patterns classify intent, not topic — the same six handle every subject.</p>
+
+      <h3>What it is</h3>
+      <p>A conversation pattern is an interaction model — a reusable shape that defines what the assistant is trying to do in a turn, not what it's talking about. The six patterns below cover the full intent space for service-delivery assistants:</p>
+
+      <div class="pattern-grid">
+        <div class="pattern-card">
+          <div class="pname">Inform-and-Act</div>
+          <div class="pkind"><span class="rtag reactive">Reactive</span></div>
+          <div class="pjob">Probe purpose before delivering content. Surface queries hide different real needs — ask before answering.</div>
+        </div>
+        <div class="pattern-card">
+          <div class="pname">Status-Check</div>
+          <div class="pkind"><span class="rtag reactive">Reactive</span></div>
+          <div class="pjob">Look up <em>this</em> person's record and reply with <em>their</em> answer — not a generic article.</div>
+        </div>
+        <div class="pattern-card">
+          <div class="pname">Decide</div>
+          <div class="pkind"><span class="rtag reactive">Reactive</span></div>
+          <div class="pjob">Walk the user through a consequential action in chat. Eligibility → confirm → lodge.</div>
+        </div>
+        <div class="pattern-card">
+          <div class="pname">Express</div>
+          <div class="pkind"><span class="rtag reactive">Reactive</span></div>
+          <div class="pjob">Recognise distress or strong emotion, listen, surface support, hand off in-channel when needed. Never rush.</div>
+        </div>
+        <div class="pattern-card">
+          <div class="pname">Nudge</div>
+          <div class="pkind"><span class="rtag proactive">Proactive</span></div>
+          <div class="pjob">Reach the user before a deadline misses them. Outbound message in their channel, click-through into chat already in flight.</div>
+        </div>
+        <div class="pattern-card">
+          <div class="pname">Check-in</div>
+          <div class="pkind"><span class="rtag proactive">Proactive</span></div>
+          <div class="pjob">When a behavioural signal flags a user as potentially needing support, open warmly. No agenda. No pressure.</div>
+        </div>
+      </div>
+
+      <h3>The proposing-mode axis</h3>
+      <p>Each pattern has a distinct <em>proposing mode</em> — the stance the assistant takes when it initiates or shapes a response:</p>
+      <div class="routing-row"><strong style="width:110px;flex-shrink:0">Inform-and-Act</strong><span>Probe — ask what they really need before delivering anything</span></div>
+      <div class="routing-row"><strong style="width:110px;flex-shrink:0">Status-Check</strong><span>Check — retrieve and confirm the specific record state</span></div>
+      <div class="routing-row"><strong style="width:110px;flex-shrink:0">Decide</strong><span>Confirm — present eligibility result and get explicit confirmation before lodging</span></div>
+      <div class="routing-row"><strong style="width:110px;flex-shrink:0">Express</strong><span>Offer — surface soft options without directing; let the user choose</span></div>
+      <div class="routing-row"><strong style="width:110px;flex-shrink:0">Nudge</strong><span>Urgency — contextual, specific, time-bound; not generic reminders</span></div>
+      <div class="routing-row"><strong style="width:110px;flex-shrink:0">Check-in</strong><span>Open — no agenda, warm, let the user define the direction</span></div>
+
+      <h3>Phase sequencing</h3>
+      <p>Reactive patterns (Inform-and-Act, Status-Check, Decide, Express) launch first — they replace the incumbent system. Proactive patterns (Nudge, Check-in) require persistent memory and a scheduler; they ship in a follow-up release once the reactive baseline is live and trusted.</p>
+
+      <h3>Routing graph</h3>
+      <p>Patterns hand off to each other via explicit transfer calls. The typical graph: Nudge → Decide; Check-in → Express or Inform-and-Act; Inform-and-Act → Status-Check or Decide; any pattern can escalate to Express. Mapping this graph early surfaces which handoff states need UI treatment (e.g. the Express held-state while an advisor joins).</p>
+
+      <div class="callout navy">
+        <strong>Worked example — higher-education chatbot</strong>
+        <p>The fee deferral question ("what is the student services fee?") was the canonical example. A purpose-blind system returned the definition article to all three variants of the question. With pattern classification:</p>
+        <ul>
+          <li>Intent = understand → <strong>Inform-and-Act</strong> (hybrid retrieval, policy article)</li>
+          <li>Intent = check my status → <strong>Status-Check</strong> (records lookup, "you owe $X, due 14 May")</li>
+          <li>Intent = defer it → <strong>Decide</strong> (eligibility check, confirm, lodge deferral via Action API)</li>
+        </ul>
+        <p>One surface query, three correct responses — none of them the incumbent's generic article.</p>
+      </div>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>Pattern map: which six patterns apply, with domain-specific examples for each</li>
+        <li>Routing graph showing handoff paths between patterns</li>
+        <li>Launch vs. follow-up split (reactive first, proactive second)</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"Classify intent, not topic. The same six patterns handle every subject area."</em>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="personas"><span class="num">3</span> Persona &amp; scenario design</h2>
+      <p class="section-lead">Three personas × three lifecycle stages = the scenario matrix that drives the prototype and the workshop.</p>
+
+      <h3>What it is</h3>
+      <p>Personas are archetypes that represent the axes of variation in the user population — not average users, but users who stress-test the design in different ways. Scenarios are scripted interactions at the intersection of a persona and a lifecycle stage.</p>
+
+      <h3>Why it matters</h3>
+      <p>A prototype that only demonstrates one user type in one context gives stakeholders false confidence. The matrix forces the design to hold across different digital fluency levels, life circumstances, and points in the user journey. It also gives the workshop audience something to project onto — real archetypes prompt real conversation.</p>
+
+      <h3>Persona design principles</h3>
+      <ul>
+        <li>Choose three archetypes that span the key axes: digital confidence, life stage, geographic/access context</li>
+        <li>Give each a name, a short biography, and a dominant tension (the thing that makes their relationship with the system hard)</li>
+        <li>Personas should be different <em>enough</em> to produce different routing paths — if two personas behave identically in every scenario, merge them</li>
+      </ul>
+
+      <div class="callout navy">
+        <strong>Worked example — higher-education chatbot</strong>
+        <p>Three personas spanning the key axes of the student population:</p>
+        <ul>
+          <li><strong>International undergraduate</strong> — high digital confidence, unfamiliar with local institutional norms, financial stress around fee deadlines, uses the portal late at night across timezones</li>
+          <li><strong>Mature online learner</strong> — moderate digital confidence, juggling work and family, disengages from Moodle under pressure, needs Check-in and proactive support more than reactive Q&amp;A</li>
+          <li><strong>Regional first-in-family student</strong> — lower institutional familiarity, on-campus intermittently, sanction/hold scenarios create disproportionate anxiety</li>
+        </ul>
+      </div>
+
+      <h3>Scenario matrix</h3>
+      <p>Map each persona across three lifecycle stages (e.g. early term / mid-late term / end of term). Each cell in the 3×3 grid is a candidate scenario. Add two edge cases (crisis / extreme deadline pressure) to reach ~11 scenarios — enough to cover the pattern space without workshop fatigue.</p>
+
+      <div class="callout amber">
+        <strong>Canonical worked example</strong>
+        <p>Pick one scenario as the primary demo — the one that best demonstrates the failure-mode fix. In the higher-education engagement, this was the fee deferral workflow: a proactive Nudge outbound, click-through into Decide, eligibility confirmed, action lodged in chat. It demonstrated three patterns in sequence and made the value proposition concrete.</p>
+      </div>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>Three persona cards (name, biography, dominant tension, typical query patterns)</li>
+        <li>Scenario matrix (3×3 grid + 2 edge cases = ~11 scenarios)</li>
+        <li>One designated canonical worked example as the primary workshop demo</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"3 personas × 3 lifecycle stages = 9 cells. Add 2 edge cases = 11 scenarios. More is noise."</em>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="research"><span class="num">4</span> Technical framework research</h2>
+      <p class="section-lead">Evaluate agent frameworks before committing. The wrong framework is harder to undo than the wrong model.</p>
+
+      <h3>What it is</h3>
+      <p>A structured survey of the open-source and commercial agent framework landscape, assessed against the specific requirements of the conversation model you've designed. Not a generic technology review — a fit-to-purpose evaluation.</p>
+
+      <h3>The three evaluation axes</h3>
+      <div class="grid-2">
+        <div class="card">
+          <div class="label">OSS maturity</div>
+          <div class="note">Stars, contributors, release cadence, breaking-change history. A 5,000-file framework that moves fast is a maintenance burden, not a shortcut.</div>
+        </div>
+        <div class="card">
+          <div class="label">Pattern fit</div>
+          <div class="note">Does the framework's mental model match yours? Frameworks built for single-agent tasks need re-shaping for multi-pattern routing. That re-shaping is hidden debt.</div>
+        </div>
+        <div class="card">
+          <div class="label">LLM abstraction quality</div>
+          <div class="note">Can you swap the underlying model without touching orchestration code? Provider lock-in surfaces as a cost and compliance risk within 12 months.</div>
+        </div>
+        <div class="card">
+          <div class="label">Memory model</div>
+          <div class="note">How does the framework handle per-user state, session continuity, and long-term memory? Bounded-by-design memory is safer than unbounded accumulation.</div>
+        </div>
+      </div>
+
+      <div class="callout navy">
+        <strong>Worked example — higher-education chatbot</strong>
+        <p>Four frameworks evaluated against the six-pattern model:</p>
+        <ul>
+          <li><strong>Hermes Agent</strong> — adopted for memory architecture (USER.md + MEMORY.md + SQLite FTS5 + Honcho external provider). Bounded-by-design memory, agent-curated facts, autonomous skill curator. ~16 source files — minimal surface area.</li>
+          <li><strong>jcode patterns</strong> — adopted for two-tier safety (auto-allowed vs. requires-permission) and memory graph approach. Direct fit for the Express distress-hold requirement.</li>
+          <li><strong>Anthropic Agent SDK (TS)</strong> — adopted as the runtime. First-party caching, streaming, typed tool calls. Session stores ship as production-ready examples.</li>
+          <li><strong>Mastra</strong> — rejected. ~5,930 source files; a full platform with deployer, codemod, agent-builder. Adopting it means taking on a stack, not a library.</li>
+          <li><strong>LangGraph (Python)</strong> — rejected. Team context-switch from TypeScript prototype; framework opinions don't match the six-pattern surface.</li>
+        </ul>
+      </div>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>Shortlist of 2–4 frameworks with adoption rationale</li>
+        <li>Explicit rejection log for frameworks considered and not taken (prevents re-litigating in future sessions)</li>
+        <li>Decision entries in the log (see Phase 6)</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"Evaluate by what a framework doesn't do as much as what it does. Complexity you don't need today is debt."</em>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="architecture"><span class="num">5</span> Architecture design</h2>
+      <p class="section-lead">Five principles, one scope boundary, and a clear stance on existing client infrastructure.</p>
+
+      <h3>The five design principles</h3>
+      <div class="grid-2">
+        <div class="card">
+          <div class="label">Purpose-first retrieval</div>
+          <div class="note">Not everything is RAG. Match retrieval strategy to pattern: hybrid search for Inform-and-Act, structured API for Status-Check, tool-call for Decide. One retrieval approach for all patterns is the incumbent system's mistake repeated.</div>
+        </div>
+        <div class="card">
+          <div class="label">Bounded memory</div>
+          <div class="note">USER profile (~500 tokens) + MEMORY facts (~800 tokens) + on-demand session retrieval. Context is predictable and cost is bounded. Unbounded memory accumulates garbage and unpredictable behaviour.</div>
+        </div>
+        <div class="card">
+          <div class="label">Per-user state, not per-user process</div>
+          <div class="note">At scale (30k+ users), long-lived per-user agent processes don't scale. Shared stateless runtime + per-user state slice keyed by user ID. Same architecture, different cost model.</div>
+        </div>
+        <div class="card">
+          <div class="label">Provider-agnostic LLM</div>
+          <div class="note">All model calls go through a typed LLMClient interface. Default to the best available model; swap without rewiring the orchestrator. LLM landscape changes faster than engagement cycles.</div>
+        </div>
+      </div>
+      <div class="card" style="margin: 10px 0 14px;">
+        <div class="label">Phase-scoped delivery</div>
+        <div class="note">Define a strict Phase 1 boundary — what must work to replace the incumbent. Everything else is Phase 2 or later. Document Phase 2 items as deferred, not designed. Designing for Phase 2 before Phase 1 is live is premature architecture.</div>
+      </div>
+
+      <h3>Handling existing client infrastructure</h3>
+      <p>Clients arrive with existing systems: middleware, identity platforms, cloud infrastructure, analytics stacks. The playbook rule: <strong>evaluate before adopting, document what you reject and why.</strong></p>
+      <ul>
+        <li><strong>If it's a genuine fit</strong> — adopt it, note the decision, and ensure the adapter layer stays inside your deployment boundary (e.g. a SAP PO adapter module inside your orchestrator pod, not a dependency on the external system's reliability)</li>
+        <li><strong>If it's not a fit or not cost-effective</strong> — reject it explicitly with rationale. Rejected items in the decisions log prevent the same conversation next quarter.</li>
+        <li><strong>If it's a partial fit</strong> — adopt the pattern, not the product. Azure AI Search is a better fit than pgvector for some clients; Copilot Studio multi-agent is not a fit if the cost model is 3× the custom orchestrator.</li>
+      </ul>
+
+      <div class="callout navy">
+        <strong>Worked example — higher-education chatbot</strong>
+        <p>The client had three existing infrastructure patterns to evaluate:</p>
+        <ul>
+          <li><strong>SAP PO middleware</strong> — adopted. Action API calls route via the existing SAP Process Orchestrator event bus before reaching SIS. The adapter runs inside our orchestrator pod; SAP PO's reliability is outside our blast radius but its routing contracts are respected.</li>
+          <li><strong>Azure RAG pattern</strong> — partially adopted. Azure AI Search preferred over pgvector for the knowledge corpus. Azure OpenAI added as a co-equal LLM provider alongside Anthropic (residency requirement).</li>
+          <li><strong>Copilot Studio multi-agent</strong> — explicitly rejected. Additional ~$2,400/mo at 30k students × 10 turns; removes LLMClient abstraction; adds Microsoft lock-in. Custom orchestrator is cheaper and more portable. Documented in the rejected decisions section.</li>
+        </ul>
+      </div>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>Architecture diagram (topology SVG: compute zone, repositories zone, external zone, observability zone)</li>
+        <li>Component table: every component with ownership tag, choice, and rationale</li>
+        <li>Phase 1 scope boundary explicitly stated</li>
+        <li>Existing-client-infrastructure evaluation in the decisions log</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"Don't design for Phase 2. Time is irrelevant with AI — sequence by dependency, not calendar."</em>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="decisions"><span class="num">6</span> Decisions log</h2>
+      <p class="section-lead">Every non-obvious decision logged in real time. The rationale decays faster than the code.</p>
+
+      <h3>What it is</h3>
+      <p>A structured HTML document that records every architectural, technical, UX, and security decision made during the engagement — including what was rejected and why. Not a retrospective; written as decisions are made.</p>
+
+      <h3>Why it matters</h3>
+      <p>Three failure modes the log prevents: (1) re-litigating decisions already made when a new stakeholder joins, (2) losing the "why" when a junior developer reads the code six months later, (3) governance review asking "did you consider X?" — the answer is already in the document.</p>
+
+      <h3>Format</h3>
+      <p>Five columns per row: <strong>ID</strong> (series prefix + number) · <strong>Decision</strong> (what was chosen) · <strong>Rationale</strong> (why) · <strong>Alternatives considered</strong> (what was evaluated but not taken) · <strong>Source</strong> (brief, user request, research session).</p>
+
+      <h3>Category series</h3>
+      <p>Group decisions by category. Recommended series from the higher-education engagement:</p>
+      <ul>
+        <li><code>A</code> — Architecture (the model itself)</li>
+        <li><code>R</code> — Pattern → retrieval mapping</li>
+        <li><code>K</code> — Knowledge scope</li>
+        <li><code>P</code> — Prototype tech stack</li>
+        <li><code>T</code> — Production tech stack</li>
+        <li><code>PR</code> — Prompt architecture</li>
+        <li><code>UX</code> — UX, branding, tone</li>
+        <li><code>S</code> — Scenario design</li>
+        <li><code>B</code> — Borrowed patterns (open-source research)</li>
+        <li><code>BO</code> — Build order / prioritisation</li>
+        <li><code>SEC</code> — Security &amp; compliance</li>
+        <li><code>X</code> — Explicitly rejected options</li>
+      </ul>
+
+      <h3>Scale calibration</h3>
+      <p>A complete engagement at this scope produces roughly 80–100 decisions. Don't aim for a number — log every decision that you can imagine being re-questioned. Trivial choices (file naming, import order) don't need logging; anything involving a trade-off does.</p>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>Decisions log HTML (self-contained, printable, linkable by section)</li>
+        <li>Rejected-options section as a permanent record of the roads not taken</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"Log decisions in real time, not retrospectively. The rationale decays faster than the code."</em>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="infra"><span class="num">7</span> Infrastructure documentation</h2>
+      <p class="section-lead">A self-contained HTML document — topology diagram, component tables, and rationale — that a cloud engineer, a security reviewer, and a delivery manager can each read usefully.</p>
+
+      <h3>What to include</h3>
+      <p>Fourteen sections cover the full Phase 1 scope: Topology (SVG diagram) · Compute · Retrieval pipeline · Repositories · Networking &amp; edge · Ingestion pipeline · Identity · External integrations · Wellbeing/escalation handoff · Observability · Resilience &amp; DR · Security controls · Cost model · CI/CD.</p>
+
+      <h3>SVG topology conventions</h3>
+      <p>Four zones, each a dashed-border rectangle with a distinct colour:</p>
+      <ul>
+        <li><strong>Azure Compute</strong> (dark navy) — Container Apps, Static Web Apps, orchestrator sub-components</li>
+        <li><strong>Repositories</strong> (rose/pink) — every data store mapped (Postgres, Redis, Blob, Key Vault)</li>
+        <li><strong>External · Outbound</strong> (purple) — LLM provider, client SIS/records, escalation handoff</li>
+        <li><strong>Observability · Operations</strong> (dark navy) — Application Insights, Log Analytics, CI/CD, ACR</li>
+      </ul>
+      <p>Colour coding by ownership: <strong>Azure-native</strong> (blue) · <strong>OSS library</strong> (green) · <strong>External SaaS</strong> (purple) · <strong>Client system</strong> (rose). Every box carries: component name, key attributes, and a decision reference ID.</p>
+
+      <h3>Phase 1 scoping rule</h3>
+      <p>If a component isn't needed to replace the incumbent system, it's not in the document. No Phase 2 placeholders, no "future state" boxes — they add noise and imply commitment. The document covers exactly what ships.</p>
+
+      <h3>Client infrastructure integration</h3>
+      <p>Client-owned systems (middleware, identity platforms, SIS) appear in the External zone with a client ownership tag. Where a client system runs inside our deployment (e.g. an adapter module in the orchestrator pod), it appears as a sub-component of the relevant compute box — not as an external dependency.</p>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>Infrastructure HTML document (self-contained, no build step needed)</li>
+        <li>SVG topology diagram embedded in the document</li>
+        <li>Component tables with ownership, choice, and rationale columns</li>
+        <li>Cost model section with per-student monthly estimates at scale</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"Every component needs a zone, a colour, and a 'why'. If you can't state the why, question whether it belongs."</em>
+      </div>
+
+      <!-- ======================================================== -->
+      <h2 id="briefing"><span class="num">8</span> Stakeholder briefing</h2>
+      <p class="section-lead">A 10–12 page PDF for senior leadership, generated from an editable HTML source. The HTML is the living document; the PDF is the snapshot.</p>
+
+      <h3>Page structure</h3>
+      <p>Twelve pages, three audience layers:</p>
+      <ul>
+        <li><strong>Pages 1–4 (leadership)</strong> — Cover · Problem today (what the incumbent does wrong) · Solution overview (the six patterns, one diagram) · Value proposition (why this, why now)</li>
+        <li><strong>Pages 5–10 (technical team)</strong> — Memory architecture · System architecture diagram · Personas (three cards) · Scenario matrix · How to run the workshop demo · Retrieval and model strategy</li>
+        <li><strong>Pages 11–12 (governance)</strong> — Decisions summary · Security and compliance posture · Next steps and Phase 1 scope</li>
+      </ul>
+
+      <h3>Presentation principles</h3>
+      <ul>
+        <li>Lead with the failure mode on page 2, before any proposed solution — the audience needs to agree the problem is real before they'll evaluate the fix</li>
+        <li>One diagram per page maximum; diagrams without a caption that explains the "so what" are decoration</li>
+        <li>The canonical worked example appears twice: as a scenario card (personas section) and as a step-by-step walk-through (how to demo section)</li>
+        <li>Phase 1 scope is explicit — what's in and what's deferred. "We will do X" is better than "we might eventually do Y"</li>
+      </ul>
+
+      <h3>PDF generation</h3>
+      <p>Build the briefing as an HTML file with print-optimised CSS (<code>@page</code> margins, <code>break-after: page</code> on each page div). Generate the PDF via Chrome headless:</p>
+      <p><code>"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --print-to-pdf=output.pdf --no-pdf-header-footer file://path/to/briefing.html</code></p>
+      <p>Regenerate on every content change — the PDF is always derived from the HTML, never edited directly.</p>
+
+      <h3>Iteration cadence</h3>
+      <p>Expect 3–5 rounds of review. Keep a version suffix in the page footer (e.g. v1.2). Each round: update the HTML, regenerate the PDF, share the PDF. Never share the HTML directly unless the recipient needs to edit it — PDFs prevent inadvertent changes and preserve formatting across devices.</p>
+
+      <h3>Key outputs</h3>
+      <ul>
+        <li>Stakeholder briefing HTML (editable source, ~12 pages when printed)</li>
+        <li>Stakeholder briefing PDF (generated from HTML, version-suffixed)</li>
+      </ul>
+
+      <div class="callout accent">
+        <strong>Heuristic</strong>
+        <em>"Build the HTML first, generate the PDF last. The HTML is the living document; the PDF is the snapshot."</em>
+      </div>
+
+      <footer class="foot">
+        <span>Conversational AI Engagement Playbook · v1.0 · May 2026</span>
+        <span>Domain-neutral · no client data · eight phases</span>
+      </footer>
+
+    </div>
+  </body>
+</html>
