@@ -1,0 +1,22 @@
+{
+  "name": "charlie-bakeoff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Three-condition bake-off (Anthropic / OpenAI-via-AI-Foundry / hybrid) over three Charlie patterns. Fills the T15 LLMClient + T16 models.config slots.",
+  "scripts": {
+    "bake": "tsx src/run.ts",
+    "bake:anthropic": "tsx src/run.ts --condition=anthropic",
+    "bake:openai": "tsx src/run.ts --condition=openai",
+    "bake:hybrid": "tsx src/run.ts --condition=hybrid"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "openai": "^4.80.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
