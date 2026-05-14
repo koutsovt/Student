@@ -324,7 +324,232 @@
     </tbody>
   </table>
 
-  <h2><span class="num">7.</span> Stakeholder soundbite</h2>
+  <h2><span class="num">7.</span> Solution at launch — application &amp; infrastructure</h2>
+  <p class="section-lead">Two views of the same lean cut. The application view shows the runtime components the orchestrator runs end-to-end; the infrastructure view shows where they live on Azure and what crosses the tenant boundary. Coral-dashed callouts mark the seams where deferred features dock when their reactivation triggers fire — no re-platforming.</p>
+
+  <h3>7.1 Application solution</h3>
+
+  <div class="figure">
+    <svg viewBox="0 0 920 600" role="img" aria-label="MVP application solution showing frontend, orchestrator with classifier, four reactive pattern handlers, dense retrieval, LLMClient interface, state loader, one MCP server with three namespaces, and external integrations.">
+      <defs>
+        <marker id="appArr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L8,4 L0,8 z" fill="#94A3B8"/>
+        </marker>
+      </defs>
+      <rect x="0" y="0" width="920" height="600" fill="white"/>
+
+      <!-- Client -->
+      <rect x="380" y="14" width="160" height="40" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
+      <text x="460" y="32" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Student device</text>
+      <text x="460" y="46" text-anchor="middle" font-size="9" fill="#475569">Browser · responsive web</text>
+      <line x1="460" y1="54" x2="460" y2="74" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+
+      <!-- Frontend -->
+      <rect x="340" y="78" width="240" height="44" rx="6" fill="#EEF0F4" stroke="#1F2A44" stroke-width="1.2"/>
+      <text x="460" y="98" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Frontend chat surface</text>
+      <text x="460" y="112" text-anchor="middle" font-size="9" fill="#475569">React/TS · Vite build · Watson-next codename</text>
+      <line x1="460" y1="124" x2="460" y2="146" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+
+      <!-- Orchestrator boundary -->
+      <rect x="40" y="150" width="840" height="252" rx="10" fill="none" stroke="#0F7B5C" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="56" y="170" font-size="10" font-weight="700" fill="#0F7B5C" letter-spacing="0.5">ORCHESTRATOR · LAUNCH SHAPE</text>
+
+      <!-- Classifier -->
+      <rect x="60" y="184" width="200" height="62" rx="6" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="1.2"/>
+      <text x="160" y="204" text-anchor="middle" font-size="11" font-weight="700" fill="#0F4F3A">Pattern classifier</text>
+      <text x="160" y="220" text-anchor="middle" font-size="9" fill="#0F4F3A">JSON: pattern · topic · purpose · risk</text>
+      <text x="160" y="236" text-anchor="middle" font-size="9" fill="#0F4F3A" font-style="italic">small/fast model via LLMClient</text>
+      <line x1="260" y1="215" x2="288" y2="215" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+
+      <!-- Pattern handlers -->
+      <rect x="290" y="184" width="390" height="62" rx="6" fill="#FFFFFF" stroke="#0F7B5C" stroke-width="1.2"/>
+      <text x="485" y="202" text-anchor="middle" font-size="11" font-weight="700" fill="#0F4F3A">Pattern handlers · four reactive at launch</text>
+      <rect x="300" y="212" width="90" height="24" rx="3" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="0.8"/>
+      <text x="345" y="228" text-anchor="middle" font-size="9" fill="#0F4F3A">Inform-and-Act</text>
+      <rect x="395" y="212" width="90" height="24" rx="3" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="0.8"/>
+      <text x="440" y="228" text-anchor="middle" font-size="9" fill="#0F4F3A">Status-Check</text>
+      <rect x="490" y="212" width="90" height="24" rx="3" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="0.8"/>
+      <text x="535" y="228" text-anchor="middle" font-size="9" fill="#0F4F3A">Decide · 1 action</text>
+      <rect x="585" y="212" width="90" height="24" rx="3" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="0.8"/>
+      <text x="630" y="228" text-anchor="middle" font-size="9" fill="#0F4F3A">Express → email</text>
+      <line x1="680" y1="215" x2="708" y2="215" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+
+      <!-- Retrieval -->
+      <rect x="710" y="184" width="150" height="62" rx="6" fill="#FFFFFF" stroke="#0F7B5C" stroke-width="1.2"/>
+      <text x="785" y="202" text-anchor="middle" font-size="11" font-weight="700" fill="#0F4F3A">Retrieval</text>
+      <text x="785" y="218" text-anchor="middle" font-size="9" fill="#0F4F3A">pgvector dense only</text>
+      <text x="785" y="234" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">BM25 + reranker → R2</text>
+
+      <!-- LLMClient strip -->
+      <rect x="60" y="262" width="800" height="36" rx="4" fill="#EEF0F4" stroke="#1F2A44" stroke-width="1.2"/>
+      <text x="460" y="280" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">LLMClient interface (T15) · Anthropic Claude is the launch default</text>
+      <text x="460" y="293" text-anchor="middle" font-size="9" fill="#475569" font-style="italic">additional providers wired via models.config.ts (T16) under R6 — no orchestrator change</text>
+
+      <!-- State loader -->
+      <rect x="60" y="314" width="800" height="74" rx="4" fill="#FFFFFF" stroke="#0F7B5C" stroke-width="1.2"/>
+      <text x="460" y="333" text-anchor="middle" font-size="11" font-weight="700" fill="#0F4F3A">State loader · per-turn context</text>
+      <rect x="120" y="346" width="220" height="28" rx="3" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="0.8"/>
+      <text x="230" y="364" text-anchor="middle" font-size="10" fill="#0F4F3A">USER profile</text>
+      <rect x="350" y="346" width="220" height="28" rx="3" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="0.8"/>
+      <text x="460" y="364" text-anchor="middle" font-size="10" fill="#0F4F3A">session log</text>
+      <rect x="580" y="346" width="220" height="28" rx="3" fill="#FBE5E0" stroke="#E47A6B" stroke-width="0.8" stroke-dasharray="4,3"/>
+      <text x="690" y="364" text-anchor="middle" font-size="10" fill="#8E3424">MEMORY · token budget · R3 / R4</text>
+
+      <!-- arrow down to MCP -->
+      <line x1="460" y1="404" x2="460" y2="424" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+
+      <!-- One MCP server -->
+      <rect x="140" y="428" width="640" height="68" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.5"/>
+      <text x="460" y="448" text-anchor="middle" font-size="12" font-weight="700" fill="#075985">ltu-mcp · one server · three namespaces (R1 splits when a second team appears)</text>
+      <rect x="160" y="460" width="190" height="26" rx="3" fill="#FFFFFF" stroke="#0369A1" stroke-width="0.8"/>
+      <text x="255" y="477" text-anchor="middle" font-size="10" fill="#075985">records.* — SIS read</text>
+      <rect x="365" y="460" width="190" height="26" rx="3" fill="#FFFFFF" stroke="#0369A1" stroke-width="0.8"/>
+      <text x="460" y="477" text-anchor="middle" font-size="10" fill="#075985">actions.* — 1 SAP PO flow</text>
+      <rect x="570" y="460" width="190" height="26" rx="3" fill="#FFFFFF" stroke="#0369A1" stroke-width="0.8"/>
+      <text x="665" y="477" text-anchor="middle" font-size="10" fill="#075985">wellbeing.* — email escalate</text>
+
+      <!-- arrows down to external -->
+      <line x1="255" y1="496" x2="255" y2="516" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+      <line x1="460" y1="496" x2="460" y2="516" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+      <line x1="665" y1="496" x2="665" y2="516" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#appArr)"/>
+
+      <!-- External row -->
+      <rect x="160" y="520" width="190" height="50" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.2"/>
+      <text x="255" y="540" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">SAP PO → SIS</text>
+      <text x="255" y="555" text-anchor="middle" font-size="9" fill="#9F1239">read path</text>
+
+      <rect x="365" y="520" width="190" height="50" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.2"/>
+      <text x="460" y="540" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">SAP PO → SIS</text>
+      <text x="460" y="555" text-anchor="middle" font-size="9" fill="#9F1239">chosen Action API · audit chain</text>
+
+      <rect x="570" y="520" width="190" height="50" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.2"/>
+      <text x="665" y="540" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Advisor inbox</text>
+      <text x="665" y="555" text-anchor="middle" font-size="9" fill="#9F1239">email · R7 upgrades to in-channel</text>
+    </svg>
+    <div class="cap">Figure 3 — Application solution at launch. Emerald = ships. Blue band = the one MCP server, namespaced for R1. Coral dashed = deferred slot, already wired to its reactivation trigger.</div>
+  </div>
+
+  <h3>7.2 Infrastructure solution</h3>
+
+  <div class="figure">
+    <svg viewBox="0 0 920 580" role="img" aria-label="MVP infrastructure showing Azure tenant with Static Web Apps, Container Apps environment hosting orchestrator and one MCP server, Postgres Flexible with pgvector, Key Vault, observability, Entra ID, plus external LTU and SaaS integrations.">
+      <defs>
+        <marker id="infArr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L8,4 L0,8 z" fill="#94A3B8"/>
+        </marker>
+      </defs>
+      <rect x="0" y="0" width="920" height="580" fill="white"/>
+
+      <!-- Top: Student → Front Door / Entra -->
+      <rect x="40" y="14" width="160" height="44" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
+      <text x="120" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Student device</text>
+      <text x="120" y="48" text-anchor="middle" font-size="9" fill="#475569">Browser · responsive web</text>
+      <line x1="200" y1="36" x2="250" y2="36" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#infArr)"/>
+
+      <rect x="252" y="14" width="170" height="44" rx="6" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.2"/>
+      <text x="337" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">Azure Front Door</text>
+      <text x="337" y="48" text-anchor="middle" font-size="9" fill="#1E3A8A">TLS · WAF · edge</text>
+
+      <rect x="710" y="14" width="170" height="44" rx="6" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.2"/>
+      <text x="795" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">Entra ID</text>
+      <text x="795" y="48" text-anchor="middle" font-size="9" fill="#1E3A8A">SSO · MFA · managed identity</text>
+      <line x1="422" y1="36" x2="708" y2="36" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3,3"/>
+
+      <!-- Azure tenant boundary -->
+      <rect x="20" y="76" width="880" height="356" rx="10" fill="none" stroke="#1E40AF" stroke-width="1.4" stroke-dasharray="6,4"/>
+      <text x="38" y="96" font-size="10" font-weight="700" fill="#1E40AF" letter-spacing="0.5">AZURE TENANT · AUSTRALIA EAST (T17 residency)</text>
+
+      <!-- Static Web Apps -->
+      <rect x="40" y="106" width="220" height="62" rx="6" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.2"/>
+      <text x="150" y="126" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">Static Web Apps</text>
+      <text x="150" y="142" text-anchor="middle" font-size="9" fill="#1E3A8A">frontend bundle · global CDN</text>
+      <text x="150" y="158" text-anchor="middle" font-size="8.5" fill="#475569" font-style="italic">React/TS · Vite</text>
+      <line x1="260" y1="138" x2="288" y2="138" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#infArr)"/>
+
+      <!-- Container Apps environment -->
+      <rect x="290" y="106" width="380" height="170" rx="8" fill="none" stroke="#1F2A44" stroke-width="1.4" stroke-dasharray="5,4"/>
+      <text x="306" y="124" font-size="9.5" font-weight="700" fill="#1F2A44" letter-spacing="0.5">CONTAINER APPS ENVIRONMENT</text>
+
+      <rect x="308" y="134" width="160" height="64" rx="6" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="1.2"/>
+      <text x="388" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#0F4F3A">Orchestrator</text>
+      <text x="388" y="168" text-anchor="middle" font-size="9" fill="#0F4F3A">TS/Node · KEDA autoscale</text>
+      <text x="388" y="183" text-anchor="middle" font-size="8.5" fill="#0F4F3A" font-style="italic">stateless · MCP client</text>
+
+      <rect x="488" y="134" width="160" height="64" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.2"/>
+      <text x="568" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#075985">ltu-mcp</text>
+      <text x="568" y="168" text-anchor="middle" font-size="9" fill="#075985">3 namespaces · HTTP/SSE</text>
+      <text x="568" y="183" text-anchor="middle" font-size="8.5" fill="#075985" font-style="italic">internal-only · R1 splits</text>
+
+      <rect x="308" y="210" width="340" height="50" rx="6" fill="#FFFFFF" stroke="#1F2A44" stroke-width="1"/>
+      <text x="478" y="228" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1F2A44">Ingestion job · scheduled</text>
+      <text x="478" y="243" text-anchor="middle" font-size="9" fill="#475569">minimal HTML scrape → chunk → embed</text>
+      <text x="478" y="256" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">Docling + LlamaIndex pipeline → R8</text>
+
+      <line x1="670" y1="170" x2="698" y2="170" stroke="#94A3B8" stroke-width="1.4" marker-end="url(#infArr)"/>
+
+      <!-- Postgres -->
+      <rect x="700" y="106" width="180" height="170" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.2"/>
+      <text x="790" y="126" text-anchor="middle" font-size="12" font-weight="700" fill="#9F1239">Postgres Flexible</text>
+      <text x="790" y="146" text-anchor="middle" font-size="9.5" fill="#9F1239">pgvector (dense)</text>
+      <text x="790" y="162" text-anchor="middle" font-size="9.5" fill="#9F1239">USER · session log</text>
+      <text x="790" y="178" text-anchor="middle" font-size="9.5" fill="#9F1239">audit table · RLS</text>
+      <text x="790" y="194" text-anchor="middle" font-size="9.5" fill="#9F1239">corpus chunks</text>
+      <text x="790" y="222" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">+ BM25 (ParadeDB) → R2</text>
+      <text x="790" y="236" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">migrate Qdrant → R2 scale</text>
+      <text x="790" y="252" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">+ MEMORY slice → R3</text>
+
+      <!-- Key Vault -->
+      <rect x="40" y="296" width="220" height="50" rx="6" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.2"/>
+      <text x="150" y="316" text-anchor="middle" font-size="11" font-weight="700" fill="#1E3A8A">Key Vault</text>
+      <text x="150" y="331" text-anchor="middle" font-size="9" fill="#1E3A8A">API keys · connection strings · MI</text>
+
+      <!-- Observability -->
+      <rect x="290" y="296" width="220" height="50" rx="6" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.2"/>
+      <text x="400" y="316" text-anchor="middle" font-size="11" font-weight="700" fill="#1E3A8A">Log Analytics + App Insights</text>
+      <text x="400" y="331" text-anchor="middle" font-size="9" fill="#1E3A8A">pattern-tagged telemetry · audit</text>
+
+      <!-- Private networking -->
+      <rect x="540" y="296" width="340" height="50" rx="6" fill="#EEF0F4" stroke="#1F2A44" stroke-width="1.2"/>
+      <text x="710" y="316" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">VNet + private endpoints</text>
+      <text x="710" y="331" text-anchor="middle" font-size="9" fill="#475569">Postgres · Key Vault · MCP internal</text>
+
+      <!-- Deferred dock band -->
+      <rect x="40" y="362" width="840" height="58" rx="6" fill="#FBE5E0" stroke="#E47A6B" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="56" y="380" font-size="10" font-weight="700" fill="#8E3424" letter-spacing="0.5">DEFERRED · DOCKS HERE WHEN TRIGGERS FIRE</text>
+      <text x="60" y="397" font-size="10" fill="#8E3424">+ alt LLM provider (R6: Azure OpenAI AU East, Bedrock Sydney, …) · + ltu-outbound-mcp for Nudge / Check-in</text>
+      <text x="60" y="412" font-size="10" fill="#8E3424">+ Held-composer Express UX (R7) · + 2nd–5th SAP PO actions (R5) · + Capacitor Android wrap (T13)</text>
+
+      <!-- External band -->
+      <rect x="20" y="450" width="880" height="116" rx="10" fill="none" stroke="#9F1239" stroke-width="1.2" stroke-dasharray="6,4"/>
+      <text x="38" y="468" font-size="10" font-weight="700" fill="#9F1239" letter-spacing="0.5">EXTERNAL — LTU INSTITUTIONAL · SAAS</text>
+
+      <rect x="40" y="480" width="240" height="68" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.2"/>
+      <text x="160" y="500" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">SAP PO → SIS</text>
+      <text x="160" y="515" text-anchor="middle" font-size="9" fill="#9F1239">read path + 1 chosen Action API</text>
+      <text x="160" y="530" text-anchor="middle" font-size="8.5" fill="#9F1239" font-style="italic">LTU middleware (T18)</text>
+      <text x="160" y="543" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">+ 4 more actions → R5</text>
+
+      <rect x="300" y="480" width="280" height="68" rx="6" fill="#EDE9FE" stroke="#5B21B6" stroke-width="1.2"/>
+      <text x="440" y="500" text-anchor="middle" font-size="11" font-weight="700" fill="#5B21B6">Anthropic Claude API (SaaS)</text>
+      <text x="440" y="515" text-anchor="middle" font-size="9" fill="#5B21B6">launch default · behind LLMClient (T15)</text>
+      <text x="440" y="530" text-anchor="middle" font-size="8.5" fill="#5B21B6" font-style="italic">residency review → route via Bedrock Sydney if required</text>
+      <text x="440" y="543" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">+ alt providers per-task → R6</text>
+
+      <rect x="600" y="480" width="280" height="68" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.2"/>
+      <text x="740" y="500" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Wellbeing advisor inbox</text>
+      <text x="740" y="515" text-anchor="middle" font-size="9" fill="#9F1239">email escalation (Express)</text>
+      <text x="740" y="530" text-anchor="middle" font-size="8.5" fill="#9F1239" font-style="italic">existing LTU support team</text>
+      <text x="740" y="543" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">→ in-channel hold under R7</text>
+
+      <!-- linkages tenant → external -->
+      <line x1="160" y1="420" x2="160" y2="478" stroke="#94A3B8" stroke-width="1.4" stroke-dasharray="3,3"/>
+      <line x1="440" y1="346" x2="440" y2="478" stroke="#94A3B8" stroke-width="1.4" stroke-dasharray="3,3"/>
+      <line x1="740" y1="420" x2="740" y2="478" stroke="#94A3B8" stroke-width="1.4" stroke-dasharray="3,3"/>
+    </svg>
+    <div class="cap">Figure 4 — Infrastructure solution at launch. One Container Apps environment hosts both the orchestrator and the one MCP server. Postgres Flexible carries vectors, state, and the audit table. The dashed coral band marks where deferred features dock when their triggers fire — no re-platforming required.</div>
+  </div>
+
+  <h2><span class="num">8.</span> Stakeholder soundbite</h2>
   <blockquote class="soundbite">
     <em>We're shipping the thesis — purpose-routing + transactional actions — on a deliberately narrow launch: one tool server, one action, vector retrieval, no curated MEMORY. Every cut is reversible at the seam. Complexity returns when data tells us we need it, not on speculation.</em>
   </blockquote>
