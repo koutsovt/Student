@@ -687,7 +687,7 @@
 
       <!-- ====================================================== -->
       <h2 id="mcp">8. MCP tool servers</h2>
-      <p class="section-lead">Three MCP (Model Context Protocol) servers run as Container Apps services within the same environment as the orchestrator. They are internal only — no public endpoint. The orchestrator is the MCP client; tool calls from the six pattern prompts route through these servers before reaching external LTU systems. This makes the tool implementations independently deployable, separately scalable, and reusable across any future agent without modifying orchestrator code.</p>
+      <p class="section-lead">Three MCP (Model Context Protocol) servers run as Container Apps services within the same environment as the orchestrator. They are internal only — no public endpoint. The orchestrator is the MCP client; tool calls from the six pattern prompts route through these servers before reaching external LTU systems. This makes the tool implementations independently deployable, separately scalable, and reusable across any future agent without modifying orchestrator code. CLI-binary tools (subprocess from the orchestrator) were considered and rejected for the reasons recorded in T19 — connection lifecycle against SAP PO and Postgres at census-load spikes, and the loss of a per-tool auth boundary independent of the orchestrator.</p>
 
       <table>
         <thead><tr><th>Server</th><th>Shape</th><th>Tools exposed</th><th>Downstream</th><th>Why</th></tr></thead>

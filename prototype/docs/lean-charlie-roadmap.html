@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lean Charlie — MVP roadmap</title>
+  <style>
+    :root {
+      --navy: #1F2A44;
+      --navy-soft: #3A4865;
+      --ltu-red: #C8102E;
+      --emerald: #0F7B5C;
+      --emerald-soft: #D5EEE3;
+      --coral: #E47A6B;
+      --coral-soft: #FBE5E0;
+      --amber: #B45309;
+      --amber-soft: #FDECD2;
+      --slate: #475569;
+      --slate-soft: #E2E8F0;
+      --paper: #FAFAF7;
+      --rule: #D8DBE3;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--paper); color: var(--navy); font-family: -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.55; }
+    body { font-size: 15px; padding: 48px 32px 96px; }
+    .wrap { max-width: 1080px; margin: 0 auto; }
+    header.doc-header { border-bottom: 4px solid var(--ltu-red); padding-bottom: 18px; margin-bottom: 28px; }
+    header.doc-header .eyebrow { text-transform: uppercase; letter-spacing: 1.5px; font-size: 11px; font-weight: 700; color: var(--ltu-red); }
+    header.doc-header h1 { margin: 6px 0 4px; font-size: 32px; letter-spacing: -0.4px; }
+    header.doc-header p.lede { margin: 0; color: var(--slate); font-size: 16px; max-width: 760px; }
+    h2 { font-size: 22px; margin: 44px 0 8px; letter-spacing: -0.2px; }
+    h2 .num { color: var(--ltu-red); font-weight: 700; margin-right: 8px; }
+    h3 { font-size: 16px; margin: 22px 0 6px; color: var(--navy); }
+    p.section-lead { color: var(--slate); margin: 0 0 18px; max-width: 820px; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; vertical-align: middle; }
+    .pill-mvp { background: var(--emerald-soft); color: var(--emerald); }
+    .pill-next { background: #FFF4D6; color: #92660A; }
+    .pill-later { background: var(--coral-soft); color: #A83D2A; }
+    .pill-risk { background: var(--amber-soft); color: var(--amber); }
+
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 0 var(--rule); margin: 8px 0 20px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; font-size: 14px; }
+    th { background: #F1F2F5; color: var(--navy); font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; }
+    td.id { width: 56px; font-weight: 700; color: var(--ltu-red); font-feature-settings: "tnum"; }
+    td.trigger { font-size: 13px; color: var(--slate); }
+
+    .figure { background: white; border: 1px solid var(--rule); border-radius: 8px; padding: 18px; margin: 8px 0 22px; }
+    .figure .cap { font-size: 12px; color: var(--slate); margin-top: 8px; text-align: center; font-style: italic; }
+    .figure svg { display: block; margin: 0 auto; width: 100%; height: auto; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { background: white; border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; }
+    .card h4 { margin: 0 0 6px; font-size: 14px; color: var(--navy); }
+    .card p { margin: 0; font-size: 13px; color: var(--slate); }
+
+    blockquote.soundbite { border-left: 4px solid var(--emerald); background: #F5FAF7; padding: 14px 18px; margin: 12px 0; font-size: 15px; color: var(--navy); }
+    blockquote.soundbite em { color: var(--navy-soft); }
+
+    code { font-family: "JetBrains Mono", "SF Mono", Menlo, monospace; font-size: 13px; background: #EEF0F4; padding: 1px 5px; border-radius: 3px; color: var(--navy); }
+
+    footer.foot { margin-top: 56px; padding-top: 14px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 16px; font-size: 12px; color: var(--slate); }
+
+    @media (max-width: 720px) {
+      body { padding: 24px 16px 64px; font-size: 14px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      header.doc-header h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-header">
+    <div class="eyebrow">Lean Charlie · Launch shape</div>
+    <h1>Lean Charlie — MVP roadmap</h1>
+    <p class="lede">A deliberately narrow launch that ships the thesis — purpose-routing + transactional actions — on a single MCP server, a single action, vector retrieval, and no curated MEMORY. Every cut is reversible at the seam. Complexity returns when data demands it, not on speculation.</p>
+  </header>
+
+  <h2><span class="num">1.</span> Premise</h2>
+  <p class="section-lead">Charlie's value is the <em>thesis</em> — classify intent before retrieval, route to a typed pattern handler, act transactionally where the conversation needs it. Everything else (number of MCP servers, breadth of retrieval, depth of state, count of providers) is dial-able. Lean Charlie turns each dial to its lowest defensible setting, ships, and re-dials based on production evidence rather than launch-day ambition.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>What we ship</h4>
+      <p>The pattern classifier, four reactive patterns, <em>one</em> transactional action of LTU's choosing from the five SAP PO flows, vector retrieval over the corpus, Anthropic Claude as the default, and email-based wellbeing escalation.</p>
+    </div>
+    <div class="card">
+      <h4>What we defer (reversibly)</h4>
+      <p>Three MCP servers → one. Hybrid retrieval + reranker → vector-only. Five SAP PO actions → one. Four state slices → two. Pre-building extra provider backends → ship with Anthropic, configure others via the <code>LLMClient</code> interface (T15) as needed. Held-composer Express UX → email escalation.</p>
+    </div>
+  </div>
+
+  <h2><span class="num">2.</span> The MVP shape</h2>
+  <p class="section-lead">Concentric scope. The emerald core is what ships at launch. The amber ring is hardening that follows once the core proves out. The coral ring is follow-up-release ambition.</p>
+
+  <div class="figure">
+    <svg viewBox="0 0 880 460" role="img" aria-label="Concentric scope diagram showing MVP core, hardening ring, and follow-up-release ring.">
+      <!-- background -->
+      <rect x="0" y="0" width="880" height="460" fill="white"/>
+
+      <!-- outer ring: follow-up release -->
+      <ellipse cx="440" cy="230" rx="410" ry="200" fill="#FBE5E0" stroke="#E47A6B" stroke-width="1.5"/>
+      <text x="440" y="46" text-anchor="middle" font-size="12" font-weight="700" fill="#A83D2A" letter-spacing="1">LATER · PROACTIVE + DEPTH</text>
+
+      <!-- middle ring: hardening -->
+      <ellipse cx="440" cy="230" rx="310" ry="155" fill="#FFF4D6" stroke="#C8941B" stroke-width="1.5"/>
+      <text x="440" y="98" text-anchor="middle" font-size="12" font-weight="700" fill="#92660A" letter-spacing="1">HARDENING · TRIGGERED</text>
+
+      <!-- inner core: MVP -->
+      <ellipse cx="440" cy="230" rx="210" ry="110" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="2"/>
+      <text x="440" y="155" text-anchor="middle" font-size="12" font-weight="700" fill="#0F7B5C" letter-spacing="1">MVP · LAUNCH</text>
+
+      <!-- MVP items -->
+      <g font-size="12" fill="#0F4F3A">
+        <text x="440" y="180" text-anchor="middle" font-weight="600">Pattern classifier</text>
+        <text x="440" y="198" text-anchor="middle">4 reactive patterns</text>
+        <text x="440" y="216" text-anchor="middle">1 MCP server · 3 namespaces</text>
+        <text x="440" y="234" text-anchor="middle">1 SAP PO action · LTU's pick</text>
+        <text x="440" y="252" text-anchor="middle">pgvector dense retrieval</text>
+        <text x="440" y="270" text-anchor="middle">USER + session log</text>
+        <text x="440" y="288" text-anchor="middle">Anthropic Claude (default via LLMClient)</text>
+        <text x="440" y="306" text-anchor="middle">Email escalation · Express</text>
+      </g>
+
+      <!-- Hardening items -->
+      <g font-size="11" fill="#7A560A">
+        <text x="180" y="220" text-anchor="middle" font-weight="600">+ BM25 hybrid</text>
+        <text x="180" y="238" text-anchor="middle">+ MEMORY slice</text>
+        <text x="180" y="256" text-anchor="middle">+ 2nd action</text>
+        <text x="700" y="220" text-anchor="middle" font-weight="600">+ token budget</text>
+        <text x="700" y="238" text-anchor="middle">+ alt provider (e.g. Azure OpenAI)</text>
+        <text x="700" y="256" text-anchor="middle">+ eval harness</text>
+      </g>
+
+      <!-- follow-up release items -->
+      <g font-size="11" fill="#8E3424">
+        <text x="200" y="380" text-anchor="middle" font-weight="600">Nudge + Check-in</text>
+        <text x="200" y="396" text-anchor="middle">ltu-outbound-mcp</text>
+        <text x="440" y="396" text-anchor="middle" font-weight="600">Held-composer Express UX</text>
+        <text x="680" y="380" text-anchor="middle" font-weight="600">All 5 SAP PO actions</text>
+        <text x="680" y="396" text-anchor="middle">Capacitor Android</text>
+      </g>
+
+      <!-- legend bottom -->
+      <g font-size="11" fill="#475569">
+        <rect x="100" y="430" width="14" height="14" fill="#D5EEE3" stroke="#0F7B5C"/>
+        <text x="122" y="441">MVP · ships</text>
+        <rect x="220" y="430" width="14" height="14" fill="#FFF4D6" stroke="#C8941B"/>
+        <text x="242" y="441">Hardening · triggered</text>
+        <rect x="400" y="430" width="14" height="14" fill="#FBE5E0" stroke="#E47A6B"/>
+        <text x="422" y="441">Later · planned</text>
+      </g>
+    </svg>
+    <div class="cap">Figure 1 — Scope rings. Inner = launch. Middle = trigger-unlocked additions. Outer = follow-up-release plan of record.</div>
+  </div>
+
+  <h2><span class="num">3.</span> What's in / what's deferred</h2>
+  <p class="section-lead">One row per dial. The "deferred" column is reversible at the same seam, not a different design.</p>
+
+  <table>
+    <thead><tr><th>Dial</th><th>MVP setting <span class="pill pill-mvp">launch</span></th><th>Deferred setting <span class="pill pill-later">later</span></th><th>Seam</th></tr></thead>
+    <tbody>
+      <tr><td>MCP servers</td><td>1 server with <code>records.*</code> · <code>actions.*</code> · <code>wellbeing.*</code> namespaces</td><td>3 independent servers (records / actions / wellbeing)</td><td>MCP transport unchanged — split when a second team owns one</td></tr>
+      <tr><td>LLM provider</td><td>Configurable via the <code>LLMClient</code> interface (T15) — Anthropic Claude is the default at launch</td><td>Additional providers wired in as needed (e.g. Azure OpenAI AU East for residency, Bedrock for sovereign hosting, Gemini / Mistral / GLM / local Ollama-vLLM). Per-task assignment in <code>models.config.ts</code> (T16).</td><td>The <code>LLMClient</code> interface is in place from day one — adding a provider is config, not orchestrator code</td></tr>
+      <tr><td>Retrieval</td><td>Dense vector only on pgvector</td><td>+ BM25 hybrid + BGE reranker (Qdrant if needed)</td><td>Retrieval pipeline is in-process — swap the pipeline, not the orchestrator</td></tr>
+      <tr><td>SAP PO actions</td><td>1 action — LTU's selection from the five flows (defer · withdraw · transfer · change-load · special-consideration). Selection criterion: highest <em>impact &times; readiness</em> — most value on the seam where SAP PO + audit + schema can be proven cleanly.</td><td>The remaining four actions, added one at a time</td><td>Function-call schema + audit chain proven by the first action; the rest follow the same shape regardless of which is chosen</td></tr>
+      <tr><td>State slices</td><td>USER + session log</td><td>+ MEMORY (curated facts) + per-student token budget</td><td>Per-turn state loader interface — add slices without changing call sites</td></tr>
+      <tr><td>Express UX</td><td>Email escalation to advisor</td><td>Held-composer + in-channel advisor handoff</td><td>Same Express prompt + distress detector; only the post-detect surface changes</td></tr>
+      <tr><td>Ingestion stack</td><td>Minimal HTML scrape + chunk + embed</td><td>Docling + LlamaIndex pipeline</td><td>Job runs separately from the orchestrator — swap when content variety demands it</td></tr>
+      <tr><td>Proactive patterns</td><td>Not in scope</td><td>Nudge + Check-in via <code>ltu-outbound-mcp</code></td><td>Already deferred to the follow-up release in current design — Lean doesn't move this</td></tr>
+      <tr><td>Mobile</td><td>Responsive web only</td><td>Capacitor Android wrap</td><td>Already T13 / follow-up release — Lean doesn't move this either</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">4.</span> Build sequence — dependency-ordered, not date-ordered</h2>
+  <p class="section-lead">Per X6 ("time is irrelevant with AI"), the roadmap sequences by dependency and outcome, not calendar. Each milestone unlocks the next; nothing waits on a week-number.</p>
+
+  <div class="figure">
+    <svg viewBox="0 0 920 360" role="img" aria-label="Dependency-ordered build sequence from MVP foundation to follow-up release.">
+      <rect x="0" y="0" width="920" height="360" fill="white"/>
+
+      <!-- swimlane labels -->
+      <g font-size="11" font-weight="700" fill="#475569" letter-spacing="0.5">
+        <text x="14" y="42">FOUNDATION</text>
+        <text x="14" y="132">MVP LAUNCH</text>
+        <text x="14" y="222">HARDENING</text>
+        <text x="14" y="312">LATER</text>
+      </g>
+
+      <!-- vertical lane separators (subtle) -->
+      <line x1="120" y1="20" x2="120" y2="340" stroke="#E2E8F0"/>
+
+      <!-- nodes -->
+      <!-- Foundation lane -->
+      <g>
+        <rect x="140" y="22" width="170" height="44" rx="6" fill="#EEF0F4" stroke="#1F2A44"/>
+        <text x="225" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Auth + SEC1 boundary</text>
+        <text x="225" y="56" text-anchor="middle" font-size="10" fill="#475569">Entra · RLS · audit shell</text>
+
+        <rect x="330" y="22" width="170" height="44" rx="6" fill="#EEF0F4" stroke="#1F2A44"/>
+        <text x="415" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Orchestrator skeleton</text>
+        <text x="415" y="56" text-anchor="middle" font-size="10" fill="#475569">Agent SDK · LLMClient</text>
+
+        <rect x="520" y="22" width="170" height="44" rx="6" fill="#EEF0F4" stroke="#1F2A44"/>
+        <text x="605" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">One MCP server</text>
+        <text x="605" y="56" text-anchor="middle" font-size="10" fill="#475569">records · actions · wellbeing ns</text>
+
+        <rect x="710" y="22" width="190" height="44" rx="6" fill="#EEF0F4" stroke="#1F2A44"/>
+        <text x="805" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">pgvector + ingest job</text>
+        <text x="805" y="56" text-anchor="middle" font-size="10" fill="#475569">portal HTML → embeddings</text>
+      </g>
+
+      <!-- MVP lane -->
+      <g>
+        <rect x="140" y="112" width="170" height="44" rx="6" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="1.5"/>
+        <text x="225" y="130" text-anchor="middle" font-size="12" font-weight="700" fill="#0F4F3A">Pattern classifier</text>
+        <text x="225" y="146" text-anchor="middle" font-size="10" fill="#0F4F3A">+ 4 reactive prompts</text>
+
+        <rect x="330" y="112" width="170" height="44" rx="6" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="1.5"/>
+        <text x="415" y="130" text-anchor="middle" font-size="12" font-weight="700" fill="#0F4F3A">First Decide action</text>
+        <text x="415" y="146" text-anchor="middle" font-size="10" fill="#0F4F3A">SAP PO seam end-to-end</text>
+
+        <rect x="520" y="112" width="170" height="44" rx="6" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="1.5"/>
+        <text x="605" y="130" text-anchor="middle" font-size="12" font-weight="700" fill="#0F4F3A">Email escalation</text>
+        <text x="605" y="146" text-anchor="middle" font-size="10" fill="#0F4F3A">distress → advisor inbox</text>
+
+        <rect x="710" y="112" width="190" height="44" rx="6" fill="#D5EEE3" stroke="#0F7B5C" stroke-width="1.5"/>
+        <text x="805" y="130" text-anchor="middle" font-size="12" font-weight="700" fill="#0F4F3A">Launch · portal + Moodle</text>
+        <text x="805" y="146" text-anchor="middle" font-size="10" fill="#0F4F3A">cohort gate then GA</text>
+      </g>
+
+      <!-- Hardening lane -->
+      <g>
+        <rect x="140" y="202" width="170" height="44" rx="6" fill="#FFF4D6" stroke="#C8941B"/>
+        <text x="225" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#7A560A">Retrieval eval harness</text>
+        <text x="225" y="236" text-anchor="middle" font-size="10" fill="#7A560A">measures what to add next</text>
+
+        <rect x="330" y="202" width="170" height="44" rx="6" fill="#FFF4D6" stroke="#C8941B"/>
+        <text x="415" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#7A560A">+ BM25 + reranker</text>
+        <text x="415" y="236" text-anchor="middle" font-size="10" fill="#7A560A">if eval shows the gap</text>
+
+        <rect x="520" y="202" width="170" height="44" rx="6" fill="#FFF4D6" stroke="#C8941B"/>
+        <text x="605" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#7A560A">+ MEMORY slice</text>
+        <text x="605" y="236" text-anchor="middle" font-size="10" fill="#7A560A">if context loss repeats</text>
+
+        <rect x="710" y="202" width="190" height="44" rx="6" fill="#FFF4D6" stroke="#C8941B"/>
+        <text x="805" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#7A560A">+ 2nd–5th SAP PO actions</text>
+        <text x="805" y="236" text-anchor="middle" font-size="10" fill="#7A560A">one at a time on the seam</text>
+      </g>
+
+      <!-- Later lane -->
+      <g>
+        <rect x="140" y="292" width="170" height="44" rx="6" fill="#FBE5E0" stroke="#E47A6B"/>
+        <text x="225" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#8E3424">Held-composer Express</text>
+        <text x="225" y="326" text-anchor="middle" font-size="10" fill="#8E3424">UX research → build</text>
+
+        <rect x="330" y="292" width="170" height="44" rx="6" fill="#FBE5E0" stroke="#E47A6B"/>
+        <text x="415" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#8E3424">Split MCP servers</text>
+        <text x="415" y="326" text-anchor="middle" font-size="10" fill="#8E3424">when 2nd team appears</text>
+
+        <rect x="520" y="292" width="170" height="44" rx="6" fill="#FBE5E0" stroke="#E47A6B"/>
+        <text x="605" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#8E3424">Nudge + Check-in</text>
+        <text x="605" y="326" text-anchor="middle" font-size="10" fill="#8E3424">ltu-outbound-mcp</text>
+
+        <rect x="710" y="292" width="190" height="44" rx="6" fill="#FBE5E0" stroke="#E47A6B"/>
+        <text x="805" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#8E3424">Capacitor Android</text>
+        <text x="805" y="326" text-anchor="middle" font-size="10" fill="#8E3424">T13 plan-of-record</text>
+      </g>
+
+      <!-- dependency arrows (vertical between lanes, on key milestones) -->
+      <g stroke="#94A3B8" stroke-width="1.4" fill="none" marker-end="url(#arrow)">
+        <defs>
+          <marker id="arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 z" fill="#94A3B8"/>
+          </marker>
+        </defs>
+        <!-- foundation → MVP -->
+        <line x1="225" y1="68" x2="225" y2="108"/>
+        <line x1="415" y1="68" x2="415" y2="108"/>
+        <line x1="605" y1="68" x2="605" y2="108"/>
+        <line x1="805" y1="68" x2="805" y2="108"/>
+        <!-- MVP → Hardening -->
+        <line x1="225" y1="158" x2="225" y2="198"/>
+        <line x1="415" y1="158" x2="415" y2="198"/>
+        <line x1="605" y1="158" x2="605" y2="198"/>
+        <line x1="805" y1="158" x2="805" y2="198"/>
+        <!-- Hardening → Later -->
+        <line x1="225" y1="248" x2="225" y2="288"/>
+        <line x1="415" y1="248" x2="415" y2="288"/>
+        <line x1="605" y1="248" x2="605" y2="288"/>
+        <line x1="805" y1="248" x2="805" y2="288"/>
+      </g>
+    </svg>
+    <div class="cap">Figure 2 — Dependency-ordered build sequence. Lanes are outcome states, not time. Each row unlocks the row below it.</div>
+  </div>
+
+  <h2><span class="num">5.</span> Reactivation triggers</h2>
+  <p class="section-lead">A deferred feature isn't a "no" — it's a "not yet, here's the signal that flips it." Documented so the team doesn't drift back into building speculatively.</p>
+
+  <table>
+    <thead><tr><th>#</th><th>Deferred feature</th><th>Reactivate when…</th><th>Where it goes</th></tr></thead>
+    <tbody>
+      <tr><td class="id">R1</td><td>Split MCP into 3 servers</td><td class="trigger">A second team owns one of records / actions / wellbeing, or any one tool exceeds 10 RPS sustained.</td><td>Same Container Apps env · revive T19 design exactly</td></tr>
+      <tr><td class="id">R2</td><td>+ BM25 + BGE reranker</td><td class="trigger">Retrieval eval shows &gt;15% of corpus questions missing exact policy-name matches, or top-1 quality is below acceptance threshold.</td><td>Swap retrieval pipeline (in-process); Qdrant if pgvector hits scale</td></tr>
+      <tr><td class="id">R3</td><td>+ MEMORY (curated facts)</td><td class="trigger">Conversation logs show repeat context loss across sessions for the same student (e.g. course/year re-asked).</td><td>Add MEMORY slice to per-turn state loader</td></tr>
+      <tr><td class="id">R4</td><td>+ Per-student token budget</td><td class="trigger">Global cap is being hit, or per-student abuse pattern detected.</td><td>Budget counter at orchestrator middleware</td></tr>
+      <tr><td class="id">R5</td><td>+ Remaining SAP PO actions (the four not chosen for MVP)</td><td class="trigger">The first action has been in production ≥4 weeks without SAP PO incidents; intake volume or stakeholder priority justifies the next action.</td><td>New tool in <code>actions.*</code> namespace · same schema shape · added one at a time</td></tr>
+      <tr><td class="id">R6</td><td>Configure an additional LLM provider</td><td class="trigger">Residency review requires it (e.g. Azure OpenAI AU East / Bedrock Sydney), Anthropic quota or availability becomes a risk, or a per-task cost optimisation is identified (e.g. cheaper model for classification).</td><td>New <code>LLMClient</code> implementation behind the existing interface · per-task assignment in <code>models.config.ts</code> (T16) · no orchestrator change</td></tr>
+      <tr><td class="id">R7</td><td>Held-composer Express UX</td><td class="trigger">Email escalation produces measurable friction (advisor pickup latency, student drop-off), or wellbeing team requests in-channel hold as a duty-of-care upgrade.</td><td>Frontend Express surface · same distress detector + Express prompt</td></tr>
+      <tr><td class="id">R8</td><td>Docling + LlamaIndex ingestion</td><td class="trigger">Content variety grows past portal HTML (PDFs, Word, mixed structure), or ingestion job quality degrades on the existing corpus.</td><td>Swap ingestion job · no orchestrator change</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">6.</span> Risks and mitigations</h2>
+  <table>
+    <thead><tr><th>Risk <span class="pill pill-risk">manage</span></th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Vector-only retrieval misses exact policy-name queries</td><td>Medium</td><td>Ship retrieval eval harness in Foundation lane; R2 ready to fire on first signal</td></tr>
+      <tr><td>Single Decide action feels narrow in stakeholder demos</td><td>Medium</td><td>Frame as the <em>thesis-proving action</em> — the goal is to prove the function-call + SAP PO + audit seam end-to-end on one transaction. Pair with a volume / impact figure for the chosen action (e.g. SSAF deferral targets ~7,648 sanctions; withdrawal volumes are similarly material) so the demo lands on value, not breadth.</td></tr>
+      <tr><td>Email escalation creates pickup-latency vs in-channel hold</td><td>Medium-High</td><td>Measure advisor pickup time from week one; R7 fires if it exceeds threshold</td></tr>
+      <tr><td>Single MCP server becomes a multi-team contention point</td><td>Low at launch</td><td>R1 trigger; namespaces are pre-split so the move is mechanical</td></tr>
+      <tr><td>Stakeholder reads "lean" as "scope reduction" rather than "deferral on a seam"</td><td>High</td><td>Use the soundbite below; lead with Figure 1 and the reactivation table</td></tr>
+      <tr><td>"Lean Charlie" gets locked in as the permanent shape</td><td>Medium</td><td>Triggers in §5 are explicit; review at 30 / 60 / 90 days post-launch</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">7.</span> Stakeholder soundbite</h2>
+  <blockquote class="soundbite">
+    <em>We're shipping the thesis — purpose-routing + transactional actions — on a deliberately narrow launch: one tool server, one action, vector retrieval, no curated MEMORY. Every cut is reversible at the seam. Complexity returns when data tells us we need it, not on speculation.</em>
+  </blockquote>
+
+  <p>Pair this line with Figure 1 (scope rings) for senior stakeholders and Figure 2 (build sequence) for engineering reviewers. Both answer the question "what did you defer and why" without re-litigating the architecture.</p>
+
+  <footer class="foot">
+    <span><strong>Sources</strong> · personalisation-one-pager · decisions-and-rationale (T1, T13, T15, T17, T18, T19, X6, X7) · engagement-playbook</span>
+    <span>Companion to <code>personalisation-one-pager.pdf</code></span>
+  </footer>
+
+</div>
+</body>
+</html>
