@@ -16,7 +16,14 @@ The companion brief is `AGENTS.md` alongside this file. The 9–11-page briefing
 | Architecture (pattern architecture v0.5 source) | `docs/Charlie_Pattern_Architecture_v0.5.docx` |
 | Project conventions | `AGENTS.md` |
 | Prototype brief (v4) | `Charlie_Prototype_Brief_v4.md` |
-| Decisions log (HTML, 63 decisions across 10 sections) | `docs/decisions-and-rationale.html` |
+| Decisions log (HTML — incl. the D1–D6 managed-Foundry decisions, §13) | `docs/decisions-and-rationale.html` |
+| Infrastructure document (HTML, Azure topology + components — reflects D1–D6) | `docs/infrastructure.html` |
+| Build-vs-buy review (HTML — D1–D6: what we build vs buy from managed Azure) | `docs/duplication-buy-vs-build-review.html` |
+| Managed-Foundry alignment review (HTML — the merged architecture) | `docs/managed-foundry-alignment-review.html` |
+| SSAF MVP walkthrough (HTML — one enquiry traced through every component) | `docs/ssaf-use-case.html` |
+| Docs index (what each doc is + reading order) | `docs/README.md` |
+| Metrics catalogue (33 metrics M1–M33 — parity, SLOs, outcomes, feedback, slices, quality) | `docs/metrics-catalogue.html` |
+| Day-1 dashboard mockup (KPI strip, SLOs, six pattern tiles, cohort × lifecycle) | `docs/day-1-dashboard.html` |
 | Stakeholder briefing (PDF + editable HTML, 11 pages) | `docs/personalisation-one-pager.{pdf,html}` |
 | **Production prompts per pattern** | `src/data/skills/<pattern>/prompts.md` |
 | 11 scripted scenarios | `src/data/scenarios.ts` |
@@ -60,7 +67,7 @@ Layer cake (per production turn):
 4. **Tool definitions** — only Decide loads Action APIs
 5. **Retrieved context** — USER + MEMORY + past snippets
 
-Model provider is **swappable via the `LLMClient` abstraction** (T15) — Anthropic is the default but the orchestrator works against any compatible provider (OpenAI, Azure OpenAI in Australia, Bedrock, Google, local). Per-task assignment is config, not code.
+Model provider — **settled direction (D1, 28 May 2026):** the production runtime is the managed **Azure AI Foundry Agent Service** (Australia East). Models stay **configurable within the in-region Foundry catalogue** via **Model Router** (D4) — selection is config, not code; no model is named in code. **GPT-family at launch** (Claude is not available in AU East on Foundry). Provider-agnosticism (T15) is **re-scoped, not reversed** — portability narrows from cross-cloud to within the in-region catalogue; an out-of-region model would be a sovereign side path (e.g. Bedrock Sydney) outside the managed runtime. Full rationale in `docs/duplication-buy-vs-build-review.html`; the static map is `docs/infrastructure.html`.
 
 ## Anchors when working in the codebase
 
@@ -78,6 +85,14 @@ Model provider is **swappable via the `LLMClient` abstraction** (T15) — Anthro
 - 11-page briefing PDF for senior stakeholders
 - 63-decision rationale log (HTML, 10 sections)
 - Six pattern prompt files in `src/data/skills/`
+- Metrics catalogue (`docs/metrics-catalogue.html`) — 33 metrics across Watson-parity, per-pattern SLOs, new-architecture outcomes, pattern-specific feedback, cohort slices, and continuous quality
+- Day-1 dashboard mockup (`docs/day-1-dashboard.html`) — single-screen launch view; sample data only, banner says so
+- **Settled runtime/provider direction (D1–D6)** — managed Azure AI Foundry runtime (AU East); models configurable via the catalogue + Model Router (D4); retrieval → Azure AI Search (D2); injection defence → Prompt Shields (D3); we own MEMORY (D5); preview features off launch-critical paths (D6)
+- Build-vs-buy review (`docs/duplication-buy-vs-build-review.html`) — the six decisions against managed Microsoft components
+- Managed-Foundry alignment review (`docs/managed-foundry-alignment-review.html`) — merged architecture (our pattern tier in front of Foundry)
+- `docs/infrastructure.html` reconciled to D1–D6 (managed runtime, AI Search, Prompt Shields, Model Router, Admin Console + Tool Registry UI; cost + scale updated for PTU)
+- SSAF MVP walkthrough (`docs/ssaf-use-case.html`) — one topic routed three ways; the proposed launch use case
+- Docs index (`docs/README.md`)
 
 ## What's deliberately out of scope (workshop validation only)
 

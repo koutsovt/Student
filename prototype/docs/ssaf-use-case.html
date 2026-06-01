@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SSAF — the MVP use case · component walkthrough · La Trobe assistant</title>
+  <style>
+    :root {
+      --ltu-red:#C8102E; --ltu-navy:#1F2A44; --surface:#FFFFFF; --surface-soft:#F5F7FA;
+      --border:#E5E7EB; --muted:#6B7280; --success:#0F7B5C; --amber:#B45309; --blue:#1D4ED8; --purple:#6D28D9;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; color:var(--ltu-navy); font-size:14px; line-height:1.55; background:var(--surface); }
+    .container { max-width:1180px; margin:0 auto; padding:0 24px 80px; }
+    header.cover { border-bottom:3px solid var(--ltu-red); padding:32px 0 18px; margin-bottom:26px; }
+    .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.20em; text-transform:uppercase; color:var(--ltu-red); }
+    h1 { font-size:29px; margin:6px 0 8px; line-height:1.15; }
+    .lead { max-width:880px; color:rgba(31,42,68,0.85); font-size:15px; }
+    .meta { font-size:12px; color:var(--muted); margin-top:8px; }
+    h2 { font-size:19px; margin:40px 0 6px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+    h3 { font-size:15px; margin:22px 0 6px; }
+    .section-lead { font-size:13px; color:rgba(31,42,68,0.78); margin:0 0 12px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+    th { text-align:left; font-size:10px; font-weight:700; letter-spacing:0.10em; text-transform:uppercase; color:var(--muted); padding:6px 10px; border-bottom:2px solid var(--border); background:var(--surface-soft); vertical-align:bottom; }
+    td { padding:8px 10px; vertical-align:top; border-bottom:1px solid var(--border); color:rgba(31,42,68,0.88); }
+    td.n { width:36px; font-weight:700; color:var(--ltu-red); text-align:center; }
+    td.dim { font-weight:700; color:var(--ltu-navy); width:22%; }
+    tr:hover td { background:rgba(245,247,250,0.5); }
+    code { font-family:'SF Mono',Menlo,monospace; font-size:12px; background:var(--surface-soft); padding:1px 5px; border-radius:3px; }
+    .callout { background:var(--surface-soft); border-left:3px solid var(--ltu-navy); padding:10px 14px; margin:14px 0; font-size:13px; border-radius:0 6px 6px 0; }
+    .callout.red { border-left-color:var(--ltu-red); background:rgba(200,16,46,0.04); }
+    .callout.green { border-left-color:var(--success); background:rgba(15,123,92,0.06); }
+    .callout.amber { border-left-color:var(--amber); background:rgba(180,83,9,0.06); }
+    .callout strong { color:var(--ltu-navy); }
+    blockquote { margin:14px 0; padding:12px 16px; border-left:3px solid var(--ltu-red); background:rgba(200,16,46,0.04); font-size:13.5px; color:rgba(31,42,68,0.9); border-radius:0 6px 6px 0; }
+    blockquote .who { display:block; margin-top:6px; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); }
+    ul.tight { margin:6px 0 14px; padding-left:20px; }
+    ul.tight li { margin-bottom:5px; }
+    svg { display:block; width:100%; height:auto; border:1px solid var(--border); border-radius:14px; background:#fff; margin:16px 0; }
+    .tag { display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:2px 7px; border-radius:999px; white-space:nowrap; }
+    .tag.azure { background:#DBEAFE; color:#1E3A8A; }
+    .tag.foundry { background:#EDE9FE; color:#5B21B6; }
+    .tag.build { background:#D1FAE5; color:#065F46; }
+    .tag.ltu { background:#FFE4E6; color:#9F1239; }
+    .legend { display:flex; flex-wrap:wrap; gap:14px; margin:14px 0; font-size:12px; color:#334155; }
+    .key { display:inline-flex; align-items:center; gap:6px; }
+    .sw { width:16px; height:12px; border-radius:3px; display:inline-block; border:1.5px solid currentColor; }
+    .t-title { font-size:12px; font-weight:800; }
+    .t-sub { font-size:10px; }
+    .t-small { font-size:9.5px; }
+    .t-tiny { font-size:8.5px; }
+    .sec { font-size:11.5px; font-weight:800; letter-spacing:.04em; }
+    footer.foot { margin-top:54px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header class="cover">
+    <div class="eyebrow">La Trobe assistant · MVP use case · component walkthrough</div>
+    <h1>SSAF: one enquiry, the whole architecture</h1>
+    <p class="lead">
+      A visual walkthrough of how a Student Services &amp; Amenities Fee (SSAF) enquiry moves through the
+      system &mdash; which component does what, and why a single topic is enough to prove the design. SSAF is
+      proposed as the launch (MVP) use case: high volume, and it touches only one back-end system of record (SIS),
+      so it isolates the architecture without dragging in extra integrations.
+    </p>
+    <p class="meta">Companion to <a href="infrastructure.html">infrastructure.html</a>, <a href="decisions-and-rationale.html">decisions-and-rationale.html</a> and <a href="managed-foundry-alignment-review.html">managed-foundry-alignment-review.html</a> · grounded in the prototype scenarios (persona: Aisha)</p>
+  </header>
+
+  <!-- =========================================================== -->
+  <h2>1. Why SSAF for the MVP</h2>
+  <blockquote>
+    &ldquo;SSAF would work as the MVP use case&hellip; Other options considered were Statement of Account and
+    Academic Transcripts, which are also high-volume enquiries but potentially have more complexity. SSAF likely
+    only requires connection to a single system (SIS). SSAF enquiries are high volume across all channels &mdash;
+    the current chatbot, livechat, and the standard text responses staff use &mdash; giving us a reasonable point
+    for comparison.&rdquo;
+    <span class="who">— Business framing (BF)</span>
+  </blockquote>
+  <p class="section-lead">Three reasons it is the right first cut:</p>
+  <ul class="tight">
+    <li><strong>High volume, one system.</strong> SSAF questions flood every channel, yet the only system of record behind them is SIS (via SAP&nbsp;PO). One clean integration to stand up, not five.</li>
+    <li><strong>A built-in baseline.</strong> Because SSAF already runs through the chatbot, livechat and staff canned-responses, we have a real before/after to measure against &mdash; deflection, accuracy, time-to-answer.</li>
+    <li><strong>It exercises the whole pattern model.</strong> The <em>same</em> topic arrives with three different intents &mdash; explain, check, act &mdash; so one use case demonstrates the classifier, the skills, knowledge grounding <em>and</em> the action/write path. That is the part Charlie could not do.</li>
+  </ul>
+
+  <!-- =========================================================== -->
+  <h2>2. One topic, three intents &mdash; the difference from Charlie</h2>
+  <p class="section-lead">A student says &ldquo;SSAF&rdquo;. What they actually want varies. The Pattern Router reads the <em>purpose</em> first, then sends the turn down the right path with the right components. Charlie matched all three to the same FAQ article.</p>
+
+  <div class="legend">
+    <span class="key" style="color:#059669"><span class="sw" style="background:#D1FAE5"></span>We build</span>
+    <span class="key" style="color:#5B21B6"><span class="sw" style="background:#EDE9FE"></span>Managed AI (Foundry)</span>
+    <span class="key" style="color:#1D4ED8"><span class="sw" style="background:#DBEAFE"></span>Azure managed</span>
+    <span class="key" style="color:#BE123C"><span class="sw" style="background:#FFE4E6"></span>LTU system (SIS)</span>
+  </div>
+
+  <svg viewBox="0 0 1100 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="One SSAF topic routed by purpose into three patterns">
+    <defs>
+      <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94A3B8"/></marker>
+    </defs>
+
+    <!-- topic -->
+    <rect x="430" y="22" width="240" height="58" rx="10" fill="#F8FAFC" stroke="#1F2A44" stroke-width="1.6"/>
+    <text x="550" y="46" text-anchor="middle" class="t-title" fill="#1F2A44">Student · &ldquo;SSAF&rdquo;</text>
+    <text x="550" y="64" text-anchor="middle" class="t-sub" fill="#475569">Aisha, first semester &mdash; one topic</text>
+
+    <!-- classifier -->
+    <rect x="395" y="108" width="310" height="68" rx="10" fill="#D1FAE5" stroke="#C8102E" stroke-width="2"/>
+    <text x="550" y="132" text-anchor="middle" class="t-title" fill="#9F1239">Pattern Router · classifier (we build)</text>
+    <text x="550" y="149" text-anchor="middle" class="t-sub" fill="#065F46">reads intent first &rarr; {pattern · topic=SSAF · purpose · risk}</text>
+    <text x="550" y="165" text-anchor="middle" class="t-tiny" fill="#065F46">classify BEFORE retrieval &mdash; picks skill + model (Model Router)</text>
+
+    <!-- arrows to columns -->
+    <g stroke="#94A3B8" stroke-width="1.6" fill="none" marker-end="url(#a)">
+      <path d="M550 80 L550 108"/>
+      <path d="M470 176 C300 200 215 205 195 224"/>
+      <path d="M550 176 L550 224"/>
+      <path d="M630 176 C800 200 885 205 905 224"/>
+    </g>
+
+    <!-- Column 1: Inform-and-Act -->
+    <rect x="30" y="226" width="330" height="250" rx="12" fill="#F0FDF4" stroke="#059669" stroke-width="1.8"/>
+    <rect x="46" y="240" width="150" height="22" rx="11" fill="#059669"/>
+    <text x="121" y="255" text-anchor="middle" class="t-small" font-weight="800" fill="#fff">INFORM-AND-ACT</text>
+    <text x="195" y="258" text-anchor="end" class="t-tiny" fill="#047857">purpose: explain</text>
+    <text x="46" y="286" class="t-title" fill="#065F46">&ldquo;What is SSAF?&rdquo;</text>
+    <rect x="46" y="298" width="298" height="40" rx="7" fill="#fff" stroke="#059669" stroke-width="1"/>
+    <text x="195" y="314" text-anchor="middle" class="t-small" fill="#065F46">Foundry agent answers from</text>
+    <text x="195" y="328" text-anchor="middle" class="t-small" font-weight="700" fill="#1D4ED8">Azure AI Search (Handbook / FAQ)</text>
+    <rect x="46" y="346" width="298" height="34" rx="7" fill="#fff" stroke="#059669" stroke-width="1"/>
+    <text x="195" y="367" text-anchor="middle" class="t-small" fill="#065F46">grounded, cited explanation</text>
+    <text x="46" y="404" class="t-tiny" fill="#047857" font-weight="700">No student record needed.</text>
+    <text x="46" y="420" class="t-tiny" fill="#047857">Read-only knowledge. SIS not touched.</text>
+    <text x="46" y="450" class="t-tiny" fill="#6B7280">Components: Foundry Agent Service ·</text>
+    <text x="46" y="464" class="t-tiny" fill="#6B7280">Azure AI Search · Prompt Shields</text>
+
+    <!-- Column 2: Status-Check -->
+    <rect x="385" y="226" width="330" height="250" rx="12" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.8"/>
+    <rect x="401" y="240" width="150" height="22" rx="11" fill="#1D4ED8"/>
+    <text x="476" y="255" text-anchor="middle" class="t-small" font-weight="800" fill="#fff">STATUS-CHECK</text>
+    <text x="699" y="258" text-anchor="end" class="t-tiny" fill="#1E40AF">purpose: status</text>
+    <text x="401" y="286" class="t-title" fill="#1E3A8A">&ldquo;Is my SSAF paid? Why is enrolment blocked?&rdquo;</text>
+    <rect x="401" y="298" width="298" height="40" rx="7" fill="#fff" stroke="#1D4ED8" stroke-width="1"/>
+    <text x="550" y="314" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">ltu-records-mcp · records_lookup</text>
+    <text x="550" y="328" text-anchor="middle" class="t-small" fill="#1E40AF">reads the student's record</text>
+    <rect x="401" y="346" width="298" height="34" rx="7" fill="#fff" stroke="#1D4ED8" stroke-width="1"/>
+    <text x="550" y="367" text-anchor="middle" class="t-small" fill="#9F1239">&rarr; SAP&nbsp;PO &rarr; SIS (read)</text>
+    <text x="401" y="404" class="t-tiny" fill="#1E40AF" font-weight="700">Reads the record. No write.</text>
+    <text x="401" y="420" class="t-tiny" fill="#1E40AF">&ldquo;$162.50 unpaid &mdash; that's the hold.&rdquo;</text>
+    <text x="401" y="450" class="t-tiny" fill="#6B7280">Components: Foundry · ltu-records-mcp ·</text>
+    <text x="401" y="464" class="t-tiny" fill="#6B7280">SAP&nbsp;PO · SIS</text>
+
+    <!-- Column 3: Decide -->
+    <rect x="740" y="226" width="330" height="250" rx="12" fill="#FFF1F2" stroke="#C8102E" stroke-width="2"/>
+    <rect x="756" y="240" width="120" height="22" rx="11" fill="#C8102E"/>
+    <text x="816" y="255" text-anchor="middle" class="t-small" font-weight="800" fill="#fff">DECIDE</text>
+    <text x="1054" y="258" text-anchor="end" class="t-tiny" fill="#9F1239">purpose: act</text>
+    <text x="756" y="286" class="t-title" fill="#9F1239">&ldquo;Defer my SSAF to HELP&rdquo;</text>
+    <rect x="756" y="298" width="298" height="58" rx="7" fill="#fff" stroke="#C8102E" stroke-width="1"/>
+    <text x="905" y="314" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">check_eligibility (read)</text>
+    <text x="905" y="329" text-anchor="middle" class="t-small" fill="#9F1239">&rarr; confirm $162.50 &rarr;</text>
+    <text x="905" y="344" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">lodge_action(defer-SSAF) (write)</text>
+    <rect x="756" y="362" width="298" height="20" rx="6" fill="#fff" stroke="#C8102E" stroke-width="1"/>
+    <text x="905" y="376" text-anchor="middle" class="t-tiny" fill="#9F1239">&rarr; SAP&nbsp;PO &rarr; SIS (write) · idempotent</text>
+    <text x="756" y="404" class="t-tiny" fill="#9F1239" font-weight="700">Eligibility + confirmation gate + audit.</text>
+    <text x="756" y="420" class="t-tiny" fill="#9F1239">One of the 5 Action APIs. Submission ID issued.</text>
+    <text x="756" y="450" class="t-tiny" fill="#6B7280">Components: Foundry · ltu-records-mcp +</text>
+    <text x="756" y="464" class="t-tiny" fill="#6B7280">ltu-actions-mcp · SAP&nbsp;PO · SIS</text>
+
+    <!-- contrast strip -->
+    <rect x="30" y="498" width="1040" height="74" rx="12" fill="#FFE4E6" stroke="#C8102E" stroke-width="1.6"/>
+    <text x="50" y="524" class="sec" fill="#9F1239">CHARLIE DID ONE THING</text>
+    <text x="50" y="544" class="t-small" fill="#9F1239">All three got the same FAQ article &mdash; an explanation, even when the student wanted a status or an action. Purpose-blind.</text>
+    <text x="50" y="562" class="t-small" font-weight="700" fill="#9F1239">Recognising the purpose and routing to the right path &mdash; that is the whole improvement, and SSAF shows all three at once.</text>
+  </svg>
+
+  <!-- =========================================================== -->
+  <h2>3. End-to-end &mdash; the fullest path (defer SSAF)</h2>
+  <p class="section-lead">The Decide path touches the most components, so it is the best one to trace. Aisha is eligible to defer her unpaid SSAF ($162.50) to HELP before the 14 May deadline. Every box below is a real component from <a href="infrastructure.html">infrastructure.html</a>.</p>
+
+  <svg viewBox="0 0 1160 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="End-to-end component pipeline for deferring SSAF">
+    <defs>
+      <marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94A3B8"/></marker>
+      <marker id="bR" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#C8102E"/></marker>
+    </defs>
+
+    <!-- main chain -->
+    <rect x="20" y="92" width="140" height="80" rx="9" fill="#F8FAFC" stroke="#1F2A44" stroke-width="1.5"/>
+    <text x="90" y="124" text-anchor="middle" class="t-title" fill="#1F2A44">Aisha</text>
+    <text x="90" y="140" text-anchor="middle" class="t-tiny" fill="#475569">&ldquo;Defer my SSAF&rdquo;</text>
+    <text x="90" y="154" text-anchor="middle" class="t-tiny" fill="#475569">web · mobile</text>
+
+    <rect x="180" y="92" width="140" height="80" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.5"/>
+    <text x="250" y="120" text-anchor="middle" class="t-title" fill="#1D4ED8">Edge &amp; identity</text>
+    <text x="250" y="136" text-anchor="middle" class="t-tiny" fill="#1E40AF">Front Door · APIM</text>
+    <text x="250" y="150" text-anchor="middle" class="t-tiny" fill="#1E40AF">Entra &rarr; student_id</text>
+
+    <rect x="340" y="78" width="160" height="108" rx="10" fill="#D1FAE5" stroke="#C8102E" stroke-width="2.2"/>
+    <text x="420" y="100" text-anchor="middle" class="t-title" fill="#9F1239">Pattern Router</text>
+    <text x="420" y="116" text-anchor="middle" class="t-tiny" fill="#065F46">classify · skill + model</text>
+    <text x="420" y="130" text-anchor="middle" class="t-tiny" fill="#065F46">budget · audit</text>
+    <text x="420" y="144" text-anchor="middle" class="t-tiny" fill="#065F46">MCP client</text>
+    <text x="420" y="162" text-anchor="middle" class="t-tiny" fill="#9F1239" font-style="italic">we build</text>
+
+    <rect x="520" y="92" width="150" height="80" rx="9" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.8"/>
+    <text x="595" y="116" text-anchor="middle" class="t-title" fill="#6D28D9">Foundry Agent</text>
+    <text x="595" y="132" text-anchor="middle" class="t-tiny" fill="#5B21B6">runs the Decide skill</text>
+    <text x="595" y="146" text-anchor="middle" class="t-tiny" fill="#5B21B6">input screened by</text>
+    <text x="595" y="159" text-anchor="middle" class="t-tiny" fill="#5B21B6">Prompt Shields</text>
+
+    <rect x="690" y="92" width="150" height="80" rx="9" fill="#D1FAE5" stroke="#059669" stroke-width="1.6"/>
+    <text x="765" y="116" text-anchor="middle" class="t-title" fill="#065F46">MCP tools</text>
+    <text x="765" y="132" text-anchor="middle" class="t-tiny" fill="#065F46">ltu-records-mcp</text>
+    <text x="765" y="146" text-anchor="middle" class="t-tiny" fill="#065F46">ltu-actions-mcp</text>
+    <text x="765" y="160" text-anchor="middle" class="t-tiny" fill="#047857" font-style="italic">we build</text>
+
+    <rect x="860" y="92" width="130" height="80" rx="9" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.5"/>
+    <text x="925" y="124" text-anchor="middle" class="t-title" fill="#9F1239">SAP PO</text>
+    <text x="925" y="140" text-anchor="middle" class="t-tiny" fill="#9F1239">translate · retry</text>
+    <text x="925" y="154" text-anchor="middle" class="t-tiny" fill="#9F1239">audit · T18</text>
+
+    <rect x="1010" y="92" width="130" height="80" rx="9" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.8"/>
+    <text x="1075" y="124" text-anchor="middle" class="t-title" fill="#9F1239">SIS</text>
+    <text x="1075" y="140" text-anchor="middle" class="t-tiny" fill="#9F1239">system of record</text>
+    <text x="1075" y="154" text-anchor="middle" class="t-tiny" fill="#9F1239">the single system</text>
+
+    <!-- forward arrows -->
+    <g stroke="#94A3B8" stroke-width="1.6" fill="none" marker-end="url(#b)">
+      <path d="M160 132 L180 132"/>
+      <path d="M320 132 L340 132"/>
+      <path d="M500 132 L520 132"/>
+      <path d="M670 132 L690 132"/>
+      <path d="M840 132 L860 132"/>
+      <path d="M990 132 L1010 132"/>
+    </g>
+
+    <!-- return arrow (answer) -->
+    <path d="M1075 92 C1075 40 300 40 90 40 L90 92" stroke="#C8102E" stroke-width="1.4" fill="none" stroke-dasharray="5,4" marker-end="url(#bR)"/>
+    <text x="560" y="32" text-anchor="middle" class="t-tiny" fill="#C8102E" font-weight="700">answer + confirmation + Submission ID 2026-SSAF-D-44812</text>
+
+    <!-- supporting stores -->
+    <rect x="340" y="210" width="160" height="56" rx="9" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.4"/>
+    <text x="420" y="232" text-anchor="middle" class="t-small" font-weight="700" fill="#9F1239">PostgreSQL</text>
+    <text x="420" y="247" text-anchor="middle" class="t-tiny" fill="#9F1239">audit log · MEMORY</text>
+    <text x="420" y="259" text-anchor="middle" class="t-tiny" fill="#9F1239">(we own · D5)</text>
+
+    <rect x="520" y="210" width="120" height="56" rx="9" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.4"/>
+    <text x="580" y="232" text-anchor="middle" class="t-small" font-weight="700" fill="#9F1239">Redis</text>
+    <text x="580" y="247" text-anchor="middle" class="t-tiny" fill="#9F1239">token budget</text>
+    <text x="580" y="259" text-anchor="middle" class="t-tiny" fill="#9F1239">counter</text>
+
+    <rect x="660" y="210" width="180" height="56" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4"/>
+    <text x="750" y="232" text-anchor="middle" class="t-small" font-weight="700" fill="#1D4ED8">Azure AI Search</text>
+    <text x="750" y="247" text-anchor="middle" class="t-tiny" fill="#1E40AF">grounding (used for</text>
+    <text x="750" y="259" text-anchor="middle" class="t-tiny" fill="#1E40AF">&ldquo;What is SSAF?&rdquo;)</text>
+
+    <!-- dashed links to stores -->
+    <g stroke="#94A3B8" stroke-width="1.2" fill="none" stroke-dasharray="3,3" marker-end="url(#b)">
+      <path d="M420 186 L420 210"/>
+      <path d="M560 172 L580 210"/>
+      <path d="M620 172 L740 210"/>
+    </g>
+
+    <!-- read/write labels on the SIS leg -->
+    <text x="925" y="186" text-anchor="middle" class="t-tiny" fill="#6B7280" font-style="italic">eligibility (read) · then lodge (write)</text>
+
+    <text x="20" y="300" class="t-tiny" fill="#6B7280">Solid = request flow · dashed red = response · dashed grey = supporting reads/writes. SSAF MVP connects to one back-end system: SIS, via SAP&nbsp;PO.</text>
+  </svg>
+
+  <h3>Step by step</h3>
+  <table>
+    <thead><tr><th>#</th><th>What happens</th><th>Component(s)</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>Aisha types &ldquo;I want to defer my SSAF&rdquo;.</td><td>Web app &rarr; Front Door (CDN · WAF · TLS)</td></tr>
+      <tr><td class="n">2</td><td>The request is authenticated; her <code>student_id</code> is established.</td><td>API Management · Entra ID</td></tr>
+      <tr><td class="n">3</td><td>The turn is classified &rarr; <code>{pattern: Decide, topic: SSAF, purpose: defer, risk: low}</code>; the Decide skill prompt and a model (via Model Router) are selected; her token budget is checked; an audit span opens.</td><td><span class="tag build">Build</span> Pattern Router</td></tr>
+      <tr><td class="n">4</td><td>The router invokes the managed agent with the Decide skill; the input is screened for injection.</td><td><span class="tag foundry">Foundry</span> Agent Service · Prompt Shields</td></tr>
+      <tr><td class="n">5</td><td>The agent checks eligibility &mdash; eligible, deadline 14 May 2026, amount $162.50.</td><td><span class="tag build">Build</span> ltu-records-mcp &rarr; <span class="tag ltu">LTU</span> SAP&nbsp;PO &rarr; SIS (read)</td></tr>
+      <tr><td class="n">6</td><td>The agent presents a confirmation gate: &ldquo;Lodge deferral of SSAF $162.50 to HELP?&rdquo; &mdash; <strong>nothing is written yet</strong>.</td><td><span class="tag build">Build</span> Decide skill (confirmation gate · SEC9)</td></tr>
+      <tr><td class="n">7</td><td>Aisha confirms.</td><td>Web app</td></tr>
+      <tr><td class="n">8</td><td>The deferral is lodged with an idempotency key.</td><td><span class="tag build">Build</span> ltu-actions-mcp · <code>lodge_action(defer-SSAF)</code> &rarr; <span class="tag ltu">LTU</span> SAP&nbsp;PO &rarr; SIS (write)</td></tr>
+      <tr><td class="n">9</td><td>SIS confirms and returns Submission ID <code>2026-SSAF-D-44812</code>.</td><td><span class="tag ltu">LTU</span> SIS</td></tr>
+      <tr><td class="n">10</td><td>Aisha gets the answer; the turn is written to the pattern-tagged audit log and MEMORY is updated.</td><td><span class="tag azure">Azure</span> PostgreSQL (audit · MEMORY)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- =========================================================== -->
+  <h2>4. Components utilised</h2>
+  <p class="section-lead">Everything an SSAF enquiry can touch, and where it comes from. The Inform-and-Act variant uses AI Search and no SIS; Status-Check reads SIS; Decide reads then writes SIS.</p>
+  <table>
+    <thead><tr><th>Component</th><th>Role in the SSAF flow</th><th>Shape</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">Front Door</td><td>Public edge &mdash; CDN, WAF, TLS.</td><td><span class="tag azure">Azure</span></td><td>INF8</td></tr>
+      <tr><td class="dim">API Management + Entra ID</td><td>Auth, rate-limit; resolves <code>student_id</code>.</td><td><span class="tag azure">Azure</span></td><td>SEC1 · T8</td></tr>
+      <tr><td class="dim">Pattern Router</td><td>Classifies intent, picks skill + model, enforces budget, opens audit, acts as MCP client. The classify-before-retrieval tier.</td><td><span class="tag build">Build</span></td><td>PR2 · D4</td></tr>
+      <tr><td class="dim">Foundry Agent Service</td><td>Runs the selected pattern's agent turn (managed runtime).</td><td><span class="tag foundry">Foundry</span></td><td>D1</td></tr>
+      <tr><td class="dim">Prompt Shields</td><td>Screens input for direct / indirect injection.</td><td><span class="tag foundry">Foundry</span></td><td>D3</td></tr>
+      <tr><td class="dim">Azure AI Search</td><td>Knowledge grounding &mdash; answers &ldquo;What is SSAF?&rdquo; from Handbook / FAQ.</td><td><span class="tag azure">Azure</span></td><td>D2</td></tr>
+      <tr><td class="dim">ltu-records-mcp</td><td><code>records_lookup</code> / <code>check_eligibility</code> &mdash; reads the SSAF balance and deferral eligibility.</td><td><span class="tag build">Build</span></td><td>T19</td></tr>
+      <tr><td class="dim">ltu-actions-mcp</td><td><code>lodge_action(defer-SSAF)</code> &mdash; the write. One of the five Action APIs.</td><td><span class="tag build">Build</span></td><td>T18 · T19</td></tr>
+      <tr><td class="dim">SAP PO</td><td>Middleware to SIS &mdash; translation, retries, audit trail.</td><td><span class="tag ltu">LTU</span></td><td>T18</td></tr>
+      <tr><td class="dim">SIS</td><td>The system of record &mdash; the single back-end SSAF needs.</td><td><span class="tag ltu">LTU</span></td><td>R2</td></tr>
+      <tr><td class="dim">PostgreSQL</td><td>Pattern-tagged audit log + governed MEMORY.</td><td><span class="tag azure">Azure</span></td><td>A8 · A6 · D5</td></tr>
+      <tr><td class="dim">Redis</td><td>Per-student token budget counter.</td><td><span class="tag azure">Azure</span></td><td>T16</td></tr>
+    </tbody>
+  </table>
+
+  <!-- =========================================================== -->
+  <h2>5. MVP scope &mdash; in, and deliberately out</h2>
+  <div class="callout green">
+    <strong>In for the MVP.</strong> The SSAF topic across three reactive patterns &mdash; <strong>Inform-and-Act</strong> (&ldquo;what is it&rdquo;), <strong>Status-Check</strong> (&ldquo;is it paid / why the hold&rdquo;) and <strong>Decide</strong> (&ldquo;defer it to HELP&rdquo;). One back-end system, <strong>SIS via SAP&nbsp;PO</strong>. The <code>defer-SSAF</code> Action API with eligibility, confirmation and idempotent write.
+  </div>
+  <div class="callout amber">
+    <strong>Out for now &mdash; follow-up.</strong> The proactive <strong>Nudge</strong> (&ldquo;your SSAF deadline is in 6 days&rdquo;) is a later release &mdash; it needs the outbound-message path, not just SIS. Other high-volume topics &mdash; <strong>Statement of Account</strong>, <strong>Academic Transcripts</strong> &mdash; were considered but carry more complexity and likely more systems; revisit once SSAF proves the pattern end-to-end.
+  </div>
+  <div class="callout">
+    <strong>The comparison we get for free.</strong> Because SSAF already runs through the chatbot, livechat and staff canned-responses, the launch can be measured against a real baseline &mdash; deflection rate, answer accuracy, and time-to-resolution &mdash; per the metrics in <a href="metrics-catalogue.html">metrics-catalogue.html</a>.
+  </div>
+
+  <footer class="foot">
+    La Trobe assistant · SSAF MVP component walkthrough · companion to
+    <a href="infrastructure.html">infrastructure.html</a>,
+    <a href="decisions-and-rationale.html">decisions-and-rationale.html</a> and
+    <a href="managed-foundry-alignment-review.html">managed-foundry-alignment-review.html</a> ·
+    grounded in the prototype scenarios (<code>src/data/scenarios.ts</code>)
+  </footer>
+</div>
+</body>
+</html>

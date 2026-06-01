@@ -34,7 +34,7 @@ skills/
                                      + past snippets if relevant
 ```
 
-The classifier (step 2) is Claude Haiku. The pattern prompt + tool calls (steps 3–5) run on Sonnet. The system prompt + USER + MEMORY prefix gets prompt-cached across turns within a session.
+The classifier (step 2) runs on a fast, low-cost model; the pattern prompt + tool calls (steps 3–5) run on a stronger model. Models are assigned per task in configuration, not hard-coded, so any task's model can be swapped without code changes. On the production (managed) path this is **Azure Model Router** selecting within the in-region Foundry catalogue (decision D4) — still config, not code; no model named in code. The system prompt + USER + MEMORY prefix gets prompt-cached across turns within a session.
 
 ## File structure
 

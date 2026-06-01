@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Metrics catalogue · La Trobe assistant · Phase 1</title>
+    <style>
+      :root {
+        --ltu-red: #C8102E;
+        --ltu-navy: #1F2A44;
+        --surface: #FFFFFF;
+        --surface-soft: #F5F7FA;
+        --border: #E5E7EB;
+        --muted: #6B7280;
+        --success: #0F7B5C;
+        --amber: #B45309;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        color: var(--ltu-navy);
+        font-size: 14px;
+        line-height: 1.55;
+        background: var(--surface);
+      }
+      .container { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+      header.cover {
+        border-bottom: 3px solid var(--ltu-red);
+        padding: 32px 0 18px;
+        margin-bottom: 28px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.20em;
+        text-transform: uppercase;
+        color: var(--ltu-red);
+      }
+      h1 { font-size: 30px; margin: 6px 0 8px; line-height: 1.15; }
+      .lead { max-width: 820px; color: rgba(31, 42, 68, 0.85); font-size: 15px; }
+      .meta { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+      h2 {
+        font-size: 19px;
+        margin: 40px 0 6px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+      }
+      h3 { font-size: 15px; margin: 22px 0 6px; color: var(--ltu-navy); }
+      .section-lead { font-size: 13px; color: rgba(31, 42, 68, 0.78); margin: 0 0 12px; }
+
+      .toc {
+        background: var(--surface-soft);
+        border-left: 3px solid var(--ltu-navy);
+        padding: 14px 18px;
+        margin-bottom: 28px;
+        border-radius: 6px;
+      }
+      .toc h3 {
+        margin: 0 0 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .toc ol {
+        margin: 0;
+        padding-left: 18px;
+        columns: 2;
+        column-gap: 24px;
+        font-size: 13px;
+      }
+      .toc li { margin-bottom: 3px; break-inside: avoid; }
+      .toc a { color: var(--ltu-navy); text-decoration: none; }
+      .toc a:hover { color: var(--ltu-red); text-decoration: underline; }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin: 8px 0;
+      }
+      th {
+        text-align: left;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 6px 10px;
+        border-bottom: 2px solid var(--border);
+        background: var(--surface-soft);
+        vertical-align: bottom;
+      }
+      td {
+        padding: 8px 10px;
+        vertical-align: top;
+        border-bottom: 1px solid var(--border);
+        color: rgba(31, 42, 68, 0.88);
+      }
+      td.id {
+        width: 8%;
+        font-family: 'SF Mono', Menlo, monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ltu-red);
+        letter-spacing: 0.04em;
+      }
+      td.metric { width: 26%; font-weight: 700; color: var(--ltu-navy); }
+      td.target { width: 22%; font-size: 12.5px; }
+      td.source { width: 24%; font-size: 12px; color: rgba(31,42,68,0.78); }
+      td.why { width: 20%; font-size: 12px; color: rgba(31,42,68,0.78); }
+      tr:hover td { background: rgba(245, 247, 250, 0.5); }
+
+      code {
+        font-family: 'SF Mono', Menlo, monospace;
+        font-size: 12px;
+        background: var(--surface-soft);
+        padding: 1px 5px;
+        border-radius: 3px;
+        color: var(--ltu-navy);
+      }
+
+      .tag {
+        display: inline-block;
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-right: 4px;
+        white-space: nowrap;
+      }
+      .tag.parity { background: #DBEAFE; color: #1E3A8A; }
+      .tag.slo    { background: #FFE4E6; color: #9F1239; }
+      .tag.new    { background: #D1FAE5; color: #065F46; }
+      .tag.qual   { background: #EDE9FE; color: #5B21B6; }
+      .tag.launch { background: var(--ltu-red); color: #FFFFFF; }
+      .tag.later  { background: var(--surface-soft); color: var(--muted); border: 1px solid var(--border); }
+
+      .callout {
+        background: var(--surface-soft);
+        border-left: 3px solid var(--ltu-navy);
+        padding: 10px 14px;
+        margin: 14px 0;
+        font-size: 13px;
+        border-radius: 0 6px 6px 0;
+      }
+      .callout.red   { border-left-color: var(--ltu-red); background: rgba(200, 16, 46, 0.04); }
+      .callout.green { border-left-color: var(--success); background: rgba(15, 123, 92, 0.06); }
+      .callout.amber { border-left-color: var(--amber);   background: rgba(180, 83, 9, 0.06); }
+      .callout strong { color: var(--ltu-navy); }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin: 14px 0;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--surface-soft);
+      }
+      .legend strong { font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+      .legend .swatch { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: rgba(31,42,68,0.85); }
+
+      .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+      .stat {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #FFFFFF;
+      }
+      .stat .label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+      .stat .value { font-size: 22px; font-weight: 700; color: var(--ltu-navy); margin: 4px 0; }
+      .stat .note  { font-size: 12px; color: rgba(31, 42, 68, 0.7); }
+
+      footer.foot {
+        margin-top: 60px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      @media print {
+        .toc { page-break-after: always; }
+        h2 { page-break-after: avoid; }
+        tr { page-break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+
+      <header class="cover">
+        <div class="eyebrow">La Trobe assistant · metrics catalogue · Phase 1</div>
+        <h1>Metrics catalogue &mdash; what we capture, why, and where it comes from</h1>
+        <p class="lead">
+          One source of truth for every signal the new assistant emits at
+          launch. Three layers: <strong>Watson-parity</strong> (so we can
+          prove we did better than Charlie), <strong>per-pattern SLOs</strong>
+          (so we know what &ldquo;working&rdquo; means for each of the six
+          patterns), and <strong>new-architecture metrics</strong> (the
+          questions Charlie literally cannot answer). Every metric has an
+          owner, a target, and an emission point in the orchestrator.
+        </p>
+        <p class="meta">
+          Updated 19 May 2026 &middot; companion to
+          <a href="decisions-and-rationale.html">decisions-and-rationale.html</a>,
+          <a href="infrastructure.html">infrastructure.html</a> and
+          <a href="day-1-dashboard.html">day-1-dashboard.html</a>
+        </p>
+      </header>
+
+      <div class="legend">
+        <strong>Metric class</strong>
+        <span class="swatch"><span class="tag parity">Parity</span>Watson baseline equivalent</span>
+        <span class="swatch"><span class="tag slo">SLO</span>operational threshold &middot; alert source</span>
+        <span class="swatch"><span class="tag new">New</span>only possible with new architecture</span>
+        <span class="swatch"><span class="tag qual">Quality</span>continuous evaluation signal</span>
+        <span class="swatch"><span class="tag launch">Launch</span>blocking for go-live</span>
+        <span class="swatch"><span class="tag later">Later</span>follow-up release</span>
+      </div>
+
+      <div class="toc">
+        <h3>Contents</h3>
+        <ol>
+          <li><a href="#approach">Approach &mdash; three layers</a></li>
+          <li><a href="#foundation">Telemetry foundation</a></li>
+          <li><a href="#parity">Watson-parity metrics (M1&ndash;M8)</a></li>
+          <li><a href="#slo">Per-pattern SLOs (M9&ndash;M16)</a></li>
+          <li><a href="#outcome">Outcome &amp; behaviour metrics (M17&ndash;M24)</a></li>
+          <li><a href="#feedback">Feedback capture (M25&ndash;M27)</a></li>
+          <li><a href="#slices">Cohort &amp; lifecycle slices (M28&ndash;M30)</a></li>
+          <li><a href="#quality">Continuous quality (M31&ndash;M33)</a></li>
+          <li><a href="#emission">Emission map &mdash; where each is produced</a></li>
+          <li><a href="#gating">Launch gating &mdash; what blocks go-live</a></li>
+        </ol>
+      </div>
+
+      <!-- ====================================================== -->
+      <h2 id="approach">1. Approach &mdash; three layers</h2>
+      <p class="section-lead">
+        Charlie&rsquo;s telemetry answers <em>&ldquo;how much did the bot
+        do?&rdquo;</em>. We need to also answer <em>&ldquo;did the student
+        get what they came for?&rdquo;</em> and <em>&ldquo;is the bot getting
+        smarter?&rdquo;</em>. Three layers, each with a different audience.
+      </p>
+
+      <div class="grid-3">
+        <div class="stat">
+          <div class="label">Layer 1 &middot; Parity</div>
+          <div class="value">Did we replace it cleanly?</div>
+          <div class="note">Mirrors Watson&rsquo;s 2023&ndash;2026 telemetry so executive comparisons hold. Audience: senior leadership, CDO.</div>
+        </div>
+        <div class="stat">
+          <div class="label">Layer 2 &middot; SLOs</div>
+          <div class="value">Is it healthy right now?</div>
+          <div class="note">Per-pattern thresholds for latency, grounding, cost, distress recall. Audience: on-call, platform team.</div>
+        </div>
+        <div class="stat">
+          <div class="label">Layer 3 &middot; Insight</div>
+          <div class="value">Is it serving students better?</div>
+          <div class="note">Task completion, self-recovery, cohort outcomes, emerging topics. Audience: Charlie product owner, student experience.</div>
+        </div>
+      </div>
+
+      <div class="callout amber">
+        <strong>Why this matters now.</strong> The 2026 Watson data shows
+        <em>containment up, sentiment down, weak-understanding rising</em>.
+        That contradiction is only legible because we have three years of
+        history. If the new assistant launches without parity metrics, we
+        lose the ability to make that comparison and the business case for
+        the replacement becomes unfalsifiable.
+      </div>
+
+      <!-- ====================================================== -->
+      <h2 id="foundation">2. Telemetry foundation</h2>
+      <p class="section-lead">
+        Already specified in <code>infrastructure.html</code> &sect;11
+        (INF11, INF12) and decision A8. Restated here so this doc is
+        self-contained.
+      </p>
+
+      <table>
+        <thead><tr><th>Component</th><th>Choice</th><th>Reference</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="metric">Trace / metric / log backend</td>
+            <td class="target">Azure Application Insights &middot; OpenTelemetry SDK (TS)</td>
+            <td class="why">INF11</td>
+          </tr>
+          <tr>
+            <td class="metric">Per-turn span attributes</td>
+            <td class="target"><code>pattern</code> &middot; <code>topic</code> &middot; <code>purpose</code> &middot; <code>risk</code> &middot; <code>hashed_student_id</code> &middot; <code>lifecycle</code> &middot; <code>outcome</code></td>
+            <td class="why">A8</td>
+          </tr>
+          <tr>
+            <td class="metric">Audit trail</td>
+            <td class="target">PostgreSQL append-only table &middot; daily snapshot to Blob Archive</td>
+            <td class="why">SEC4</td>
+          </tr>
+          <tr>
+            <td class="metric">Cost attribution</td>
+            <td class="target">Azure Cost Management &middot; per-student-tagged consumption</td>
+            <td class="why">A7 &middot; T16</td>
+          </tr>
+          <tr>
+            <td class="metric">Alert pipeline</td>
+            <td class="target">Log Analytics workspace + KQL alerts &rarr; PagerDuty / Teams</td>
+            <td class="why">INF12</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="section-lead">
+        Everything in &sect;3&ndash;&sect;8 is derived from the seven span
+        attributes above plus Action API success codes, retrieval pipeline
+        outputs, and the classifier&rsquo;s typed JSON. <strong>No new
+        infrastructure is required.</strong>
+      </p>
+
+      <!-- ====================================================== -->
+      <h2 id="parity">3. Watson-parity metrics <span class="tag parity">Parity</span></h2>
+      <p class="section-lead">
+        Mirrors the columns in the 2023&ndash;2026 IBM Stats workbook so YoY
+        and week-over-week comparisons against Charlie stay valid through
+        cutover. Every metric is also sliceable by the seven span tags
+        &mdash; an immediate upgrade over Watson&rsquo;s aggregate-only
+        reporting.
+      </p>
+
+      <table>
+        <thead><tr><th>ID</th><th>Metric</th><th>Definition / target</th><th>Source</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">M1</td>
+            <td class="metric">Total conversations / week</td>
+            <td class="target">Distinct conversation_id count. Baseline 2026: <strong>1,133 / wk</strong>.</td>
+            <td class="source">Orchestrator span: 1 per conversation start</td>
+            <td class="why">Volume baseline; capacity planning</td>
+          </tr>
+          <tr>
+            <td class="id">M2</td>
+            <td class="metric">Active users / week</td>
+            <td class="target">Distinct <code>hashed_student_id</code>. Baseline 2026: <strong>956 / wk</strong>.</td>
+            <td class="source">Span attribute</td>
+            <td class="why">Reach; demand-side trend</td>
+          </tr>
+          <tr>
+            <td class="id">M3</td>
+            <td class="metric">Avg messages per conversation</td>
+            <td class="target">Mean turns/conversation, sliced by pattern. Baseline 2026: <strong>4.77</strong>.</td>
+            <td class="source">Per-turn span count grouped by conversation_id</td>
+            <td class="why">Replaces Watson&rsquo;s flat avg with pattern-aware view (Decide naturally longer than Status-Check)</td>
+          </tr>
+          <tr>
+            <td class="id">M4</td>
+            <td class="metric">Weak-understanding rate</td>
+            <td class="target">% turns where classifier confidence &lt; 0.6 <em>or</em> retrieval returns nothing above threshold. Baseline 2026: <strong>14.2%</strong> equivalent.</td>
+            <td class="source">Classifier output + retrieval pipeline</td>
+            <td class="why">Direct Watson equivalent; trend signal for knowledge gaps</td>
+          </tr>
+          <tr>
+            <td class="id">M5</td>
+            <td class="metric">Coverage</td>
+            <td class="target">% queries served by an in-scope pattern (vs out-of-scope refusal). Baseline 2026: <strong>0.85</strong>.</td>
+            <td class="source">Classifier&rsquo;s <code>topic</code> output + safety subsystem refusals</td>
+            <td class="why">Comparable to Watson coverage; declining trend signals corpus drift</td>
+          </tr>
+          <tr>
+            <td class="id">M6</td>
+            <td class="metric">Connect-to-Agent rate</td>
+            <td class="target">% conversations ending in live-chat handoff. Baseline 2026: <strong>47%</strong>.</td>
+            <td class="source"><code>outcome=escalated_live_chat</code></td>
+            <td class="why">Parity with Charlie; but see M17 for the more useful metric</td>
+          </tr>
+          <tr>
+            <td class="id">M7</td>
+            <td class="metric">Positive sentiment %</td>
+            <td class="target">% turns with thumbs-up <em>or</em> high-confidence positive in LLM-judge sample. Baseline 2026: <strong>11.7%</strong>.</td>
+            <td class="source">User feedback widget + M31 sample</td>
+            <td class="why">Trend comparison; replace generic widget with M25 pattern-specific</td>
+          </tr>
+          <tr>
+            <td class="id">M8</td>
+            <td class="metric">Top intents (topic &times; purpose)</td>
+            <td class="target">Rolling top-20 by week. Watson top-3: Connect-to-Agent, Negative-Feedback, ltu-timetable.</td>
+            <td class="source"><code>topic</code> + <code>purpose</code> aggregation</td>
+            <td class="why">Direct equivalent of Watson top-intents; richer because two-dimensional</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ====================================================== -->
+      <h2 id="slo">4. Per-pattern SLOs <span class="tag slo">SLO</span></h2>
+      <p class="section-lead">
+        INF12 lists alert <em>names</em> (p95, error rate, cost, DLP) but
+        not thresholds. A single p95 across all six patterns hides the only
+        one that matters: <strong>Express</strong>. These targets are
+        per-pattern and per-pipeline-stage, and every breach pages on-call.
+      </p>
+
+      <table>
+        <thead><tr><th>ID</th><th>Metric</th><th>Pattern &middot; target</th><th>Source</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">M9</td>
+            <td class="metric">Time to first token (p95)</td>
+            <td class="target">
+              Express &lt; 1.5s &middot;
+              Status-Check &lt; 2.0s &middot;
+              Inform-and-Act &lt; 3.0s &middot;
+              Decide &lt; 5.0s
+            </td>
+            <td class="source">Span: <code>llm.first_token_ms</code></td>
+            <td class="why">Express delay = real harm; Decide can take longer because the user expects deliberation</td>
+          </tr>
+          <tr>
+            <td class="id">M10</td>
+            <td class="metric">End-to-end turn latency (p95)</td>
+            <td class="target">All patterns &lt; 8.0s; Express &lt; 3.0s</td>
+            <td class="source">Span: <code>turn.duration_ms</code></td>
+            <td class="why">Catches retrieval / tool-call tail latency that M9 misses</td>
+          </tr>
+          <tr>
+            <td class="id">M11</td>
+            <td class="metric">Error rate</td>
+            <td class="target">&lt; 0.5% turns return 5xx or fall back to safety refusal-on-error</td>
+            <td class="source">Span status + safety subsystem</td>
+            <td class="why">Baseline reliability</td>
+          </tr>
+          <tr>
+            <td class="id">M12</td>
+            <td class="metric">Distress-classifier recall</td>
+            <td class="target">&ge; 95% on red-team Express set; &ge; 90% on live-sampled audit</td>
+            <td class="source">Risk classifier output vs. judge-labelled sample</td>
+            <td class="why">False negatives = missed wellbeing escalation. Highest-stakes single metric in the system.</td>
+          </tr>
+          <tr>
+            <td class="id">M13</td>
+            <td class="metric">Distress-classifier precision</td>
+            <td class="target">&ge; 70% (intentionally generous tradeoff vs recall)</td>
+            <td class="source">Risk classifier output vs. judge-labelled sample</td>
+            <td class="why">Precision lower than recall by design; over-escalation is the safer failure mode</td>
+          </tr>
+          <tr>
+            <td class="id">M14</td>
+            <td class="metric">Action API success rate</td>
+            <td class="target">Decide pattern &ge; 98% of <code>lodge_action</code> calls return 2xx within 10s</td>
+            <td class="source">MCP tool-server response codes</td>
+            <td class="why">If SIS is down, the bot must say so &mdash; not silently fail</td>
+          </tr>
+          <tr>
+            <td class="id">M15</td>
+            <td class="metric">DLP-redaction events</td>
+            <td class="target">&lt; 0.1% turns trigger a PII redaction; spike alert &gt; 1%</td>
+            <td class="source">Safety subsystem (T11)</td>
+            <td class="why">Sudden rise = upstream system leaking PII into prompts</td>
+          </tr>
+          <tr>
+            <td class="id">M16</td>
+            <td class="metric">Cost per turn</td>
+            <td class="target">
+              Express &lt; $0.008 &middot;
+              Status-Check &lt; $0.012 &middot;
+              Inform-and-Act &lt; $0.025 &middot;
+              Decide &lt; $0.045
+            </td>
+            <td class="source">LLMClient (T15) per-call cost + retrieval cost</td>
+            <td class="why">Pattern-specific so the &ldquo;cheap chitchat funds expensive Decides&rdquo; pattern is visible</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout green">
+        <strong>SLO budget approach.</strong> Each metric has a 28-day
+        rolling error budget (e.g. 0.5% of turns over 28d may exceed M10).
+        Burn-rate alerts at 2&times; and 10&times; budget consumption, per
+        Google SRE convention. Budget exhaustion triggers a feature freeze
+        on the affected pattern&rsquo;s prompt or skill until the SLO
+        recovers.
+      </div>
+
+      <!-- ====================================================== -->
+      <h2 id="outcome">5. Outcome &amp; behaviour metrics <span class="tag new">New</span></h2>
+      <p class="section-lead">
+        Charlie cannot answer any of the questions in this section. These
+        are the metrics that move the SA story from <em>&ldquo;the bot is
+        running&rdquo;</em> to <em>&ldquo;the bot is working&rdquo;</em>.
+      </p>
+
+      <table>
+        <thead><tr><th>ID</th><th>Metric</th><th>Definition / target</th><th>Source</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">M17</td>
+            <td class="metric">Task-completion rate</td>
+            <td class="target">% Decide / Inform-and-Act turns where the downstream Action API <em>or</em> verifiable next step succeeded. Target &ge; 85% at launch.</td>
+            <td class="source">MCP tool-server 2xx + outcome tag</td>
+            <td class="why">Honest replacement for Charlie&rsquo;s &ldquo;containment&rdquo;. Containment counts abandons; task-completion counts wins.</td>
+          </tr>
+          <tr>
+            <td class="id">M18</td>
+            <td class="metric">Self-recovery rate</td>
+            <td class="target">When turn N is judged unhelpful, % of conversations where turn N+1 lands. Target &ge; 60% at launch, trending up.</td>
+            <td class="source">Judge sample (M31) of consecutive turns</td>
+            <td class="why">Trend line on this chart is the cleanest &ldquo;is the bot getting smarter&rdquo; signal we have</td>
+          </tr>
+          <tr>
+            <td class="id">M19</td>
+            <td class="metric">Pattern classification accuracy (live)</td>
+            <td class="target">% turns where user does not re-prompt to redirect pattern. Target &ge; 90%.</td>
+            <td class="source">Detect re-prompt heuristic + judge sample</td>
+            <td class="why">PR6 fixtures measure classifier in the lab; this measures it in the wild</td>
+          </tr>
+          <tr>
+            <td class="id">M20</td>
+            <td class="metric">Grounded-answer rate</td>
+            <td class="target">% Inform-and-Act / Status-Check turns whose response cites at least one retrieved chunk above relevance threshold. Target &ge; 90%.</td>
+            <td class="source">Retrieval pipeline + response post-check</td>
+            <td class="why">Direct hallucination guardrail; declining rate = corpus or chunking regression</td>
+          </tr>
+          <tr>
+            <td class="id">M21</td>
+            <td class="metric">Escalation-reason taxonomy</td>
+            <td class="target">Every escalation tagged: <code>out_of_scope</code> &middot; <code>low_confidence</code> &middot; <code>user_requested</code> &middot; <code>risk_detected</code> &middot; <code>repeat_failure</code></td>
+            <td class="source"><code>outcome</code> tag with reason sub-attribute</td>
+            <td class="why">Watson&rsquo;s &ldquo;Connect to Agent&rdquo; is one bucket; this answers <em>why</em> the escalation happened</td>
+          </tr>
+          <tr>
+            <td class="id">M22</td>
+            <td class="metric">Drop-off intent</td>
+            <td class="target">Last-classified <code>topic</code> + <code>purpose</code> on conversations that end without resolution or escalation. Rolling top-10.</td>
+            <td class="source">Conversation-end span without success outcome</td>
+            <td class="why">Tells you exactly where students hit a wall &mdash; uniquely actionable for content / skill improvement</td>
+          </tr>
+          <tr>
+            <td class="id">M23</td>
+            <td class="metric">Cost per successful outcome</td>
+            <td class="target">M16 &divide; M17 by pattern. Reframes Decide (expensive but high-value) honestly.</td>
+            <td class="source">Derived</td>
+            <td class="why">Per-student cost is the wrong denominator. Per-win is the honest one.</td>
+          </tr>
+          <tr>
+            <td class="id">M24</td>
+            <td class="metric">Emerging-topic detector</td>
+            <td class="target">Weekly cluster of queries with low max-similarity to known topics. Surface top-5 unknown clusters.</td>
+            <td class="source">Embedding-space clustering over unclassified-topic queries</td>
+            <td class="why">Watson can only count <em>known</em> intents. The new architecture can flag unknowns before they become weak-understanding spikes.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ====================================================== -->
+      <h2 id="feedback">6. Feedback capture <span class="tag new">New</span></h2>
+      <p class="section-lead">
+        The 2022&ndash;23 BI sheet shows <strong>98.3% of negative feedback
+        is uncategorised</strong>. A generic 👍/👎 widget is the cause.
+        Replace it with pattern-specific microsurveys delivered in-channel
+        at conversation end.
+      </p>
+
+      <table>
+        <thead><tr><th>ID</th><th>Metric</th><th>Prompt</th><th>Pattern</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">M25</td>
+            <td class="metric">Did-it-help, pattern-shaped</td>
+            <td class="target">
+              &ldquo;Did you get what you needed?&rdquo; (Inform-and-Act)<br/>
+              &ldquo;Did Charlie help you decide?&rdquo; (Decide)<br/>
+              &ldquo;Did Charlie understand how you feel?&rdquo; (Express)<br/>
+              &ldquo;Was the update useful?&rdquo; (Status-Check / Nudge / Check-in)
+            </td>
+            <td class="source">All six</td>
+            <td class="why">Pattern-aware questions get pattern-aware answers. Tag-rich feedback by construction.</td>
+          </tr>
+          <tr>
+            <td class="id">M26</td>
+            <td class="metric">Friction reason (single-tap)</td>
+            <td class="target">If M25 = no, surface 4 chips: <em>didn&rsquo;t understand me</em> &middot; <em>wrong answer</em> &middot; <em>couldn&rsquo;t do the thing</em> &middot; <em>took too long</em></td>
+            <td class="source">Microsurvey</td>
+            <td class="why">Captures the &ldquo;Blank&rdquo; category Watson lost. Four chips = four actionable failure modes.</td>
+          </tr>
+          <tr>
+            <td class="id">M27</td>
+            <td class="metric">Free-text comment opt-in</td>
+            <td class="target">Optional, &le; 280 chars. Always optional, never gating.</td>
+            <td class="source">Microsurvey</td>
+            <td class="why">Qualitative thread feeding emerging-topic detector (M24) and prompt iteration</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Survey fatigue guardrail.</strong> Microsurvey shown at most
+        once per student per 24h, biased to conversations that look
+        completed (M17 success or natural end). Conversations ending in
+        Express handoff <em>never</em> trigger the survey.
+      </div>
+
+      <!-- ====================================================== -->
+      <h2 id="slices">7. Cohort &amp; lifecycle slices <span class="tag new">New</span></h2>
+      <p class="section-lead">
+        Every metric above is automatically sliceable by these dimensions.
+        Listed as their own metrics because the slices themselves are the
+        insight &mdash; not the aggregate they came from.
+      </p>
+
+      <table>
+        <thead><tr><th>ID</th><th>Slice</th><th>Definition</th><th>Source</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">M28</td>
+            <td class="metric">Cohort cross-tab</td>
+            <td class="target">Every outcome metric by: domestic/international &middot; UG/PG &middot; year-of-study &middot; college</td>
+            <td class="source"><code>hashed_student_id</code> joined to SIS cohort attributes at query time (never persisted)</td>
+            <td class="why">Surfaces underserved cohorts. The international-PG-first-year cell is usually where the bot is weakest.</td>
+          </tr>
+          <tr>
+            <td class="id">M29</td>
+            <td class="metric">Lifecycle drift</td>
+            <td class="target">Same query / topic at different week-of-semester. Heatmap topic &times; week.</td>
+            <td class="source"><code>lifecycle</code> tag (early / mid-late / end) + ISO week</td>
+            <td class="why">&ldquo;Wellbeing queries spike week 8&rdquo; insights that Watson smeared into a flat average</td>
+          </tr>
+          <tr>
+            <td class="id">M30</td>
+            <td class="metric">First-touch vs returning</td>
+            <td class="target">Per-user conversation index 1 vs &gt; 1. M17 should differ &mdash; first-touch usually lower.</td>
+            <td class="source">Derived from <code>hashed_student_id</code> history</td>
+            <td class="why">Distinguishes onboarding pain from habitual-use pain; targets different fixes</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ====================================================== -->
+      <h2 id="quality">8. Continuous quality <span class="tag qual">Quality</span></h2>
+      <p class="section-lead">
+        Three closed loops that keep the system honest between releases.
+        All three feed the prompt iteration cycle described in PR6.
+      </p>
+
+      <table>
+        <thead><tr><th>ID</th><th>Metric</th><th>Cadence / target</th><th>Source</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">M31</td>
+            <td class="metric">LLM-judge sample</td>
+            <td class="target">Random 1% of conversations scored daily against pattern-fit rubric (5 dimensions per pattern). Target avg &ge; 4.0 / 5.</td>
+            <td class="source">Async judge job &middot; cheaper model than runtime</td>
+            <td class="why">Continuous quality signal without human-rater bottleneck</td>
+          </tr>
+          <tr>
+            <td class="id">M32</td>
+            <td class="metric">Red-team replay</td>
+            <td class="target">Full SEC10 set re-run on every prompt or skill change. Pass = 100% (refusals + safe outputs).</td>
+            <td class="source">CI pipeline</td>
+            <td class="why">Prevents regressions on jailbreaks and off-scope topics &mdash; gates merge</td>
+          </tr>
+          <tr>
+            <td class="id">M33</td>
+            <td class="metric">Scenario fixture pass rate</td>
+            <td class="target">PR6&rsquo;s 11 fixtures + ongoing additions. Pass = deterministic match on classifier output + grounded answer + correct action invocation.</td>
+            <td class="source">CI pipeline</td>
+            <td class="why">Closes the gap in PR6 by defining &ldquo;pass&rdquo; concretely</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ====================================================== -->
+      <h2 id="emission">9. Emission map &mdash; where each metric is produced</h2>
+      <p class="section-lead">
+        Every metric ID mapped to the architecture component that emits it.
+        Useful for the LTU build team when wiring instrumentation. Component
+        references resolve in <a href="infrastructure.html">infrastructure.html</a>.
+      </p>
+
+      <table>
+        <thead><tr><th>Component</th><th>Metrics emitted</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="metric">Orchestrator (Container Apps)</td>
+            <td class="target">M1, M2, M3, M10, M11, M22, M30</td>
+            <td class="why">Span lifecycle, error envelope, conversation graph</td>
+          </tr>
+          <tr>
+            <td class="metric">Classifier (PR2)</td>
+            <td class="target">M4 (confidence), M5 (topic in/out scope), M8 (top intents), M19, M21 (reason)</td>
+            <td class="why">Typed JSON output is the schema source</td>
+          </tr>
+          <tr>
+            <td class="metric">LLMClient (T15)</td>
+            <td class="target">M9 (first-token), M16 (cost), M23 (derived)</td>
+            <td class="why">Provider-agnostic timing + token-cost reporting</td>
+          </tr>
+          <tr>
+            <td class="metric">Retrieval pipeline (T4, T6, T7)</td>
+            <td class="target">M20, M24, contributes to M4</td>
+            <td class="why">Relevance scores, grounded-citation hooks, embedding clustering</td>
+          </tr>
+          <tr>
+            <td class="metric">Safety subsystem (T11, SEC8)</td>
+            <td class="target">M12, M13, M15</td>
+            <td class="why">Risk classifier + DLP signals</td>
+          </tr>
+          <tr>
+            <td class="metric">MCP tool servers (T19)</td>
+            <td class="target">M14, M17 (Action API success), M6 (wellbeing handoff)</td>
+            <td class="why">Response codes + handoff confirmations</td>
+          </tr>
+          <tr>
+            <td class="metric">Microsurvey widget (frontend)</td>
+            <td class="target">M7, M25, M26, M27</td>
+            <td class="why">Pattern-aware prompt chosen client-side based on last span&rsquo;s pattern tag</td>
+          </tr>
+          <tr>
+            <td class="metric">Judge job (async worker)</td>
+            <td class="target">M18, M31</td>
+            <td class="why">Reads conversation log + scores; runs nightly, sampled</td>
+          </tr>
+          <tr>
+            <td class="metric">CI pipeline</td>
+            <td class="target">M32, M33</td>
+            <td class="why">Blocks merge on red-team / fixture regression</td>
+          </tr>
+          <tr>
+            <td class="metric">SIS cohort join (read-only)</td>
+            <td class="target">M28, M29 (lifecycle is derived from SIS academic calendar)</td>
+            <td class="why">Cohort attributes resolved at query time, never persisted with telemetry</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ====================================================== -->
+      <h2 id="gating">10. Launch gating &mdash; what blocks go-live</h2>
+      <p class="section-lead">
+        Not every metric needs to be live on day one. Three rings: launch
+        blocking, week-4 follow-up, later release. The launch ring is the
+        minimum to make the parity claim and operate safely.
+      </p>
+
+      <div class="grid-3">
+        <div class="stat">
+          <div class="label">Launch blocking <span class="tag launch">Launch</span></div>
+          <div class="value">17 metrics</div>
+          <div class="note">
+            M1&ndash;M8 (parity), M9&ndash;M16 (SLOs), M17 (task completion).
+            Without these we cannot prove parity or operate safely.
+          </div>
+        </div>
+        <div class="stat">
+          <div class="label">Week-4 follow-up <span class="tag launch">Launch</span></div>
+          <div class="value">10 metrics</div>
+          <div class="note">
+            M19&ndash;M22 (outcome behaviours), M25&ndash;M27 (feedback),
+            M28 (cohort), M31&ndash;M33 (quality loops). Need 4 weeks of
+            live traffic to baseline.
+          </div>
+        </div>
+        <div class="stat">
+          <div class="label">Later release <span class="tag later">Later</span></div>
+          <div class="value">6 metrics</div>
+          <div class="note">
+            M18 (self-recovery), M23 (cost-per-win), M24 (emerging topics),
+            M29&ndash;M30 (lifecycle / first-touch). High-value but require
+            tooling investment beyond the launch envelope.
+          </div>
+        </div>
+      </div>
+
+      <div class="callout red">
+        <strong>Non-negotiable.</strong> M12 (distress recall) is the
+        single hardest gate. The system does not go live until the
+        red-team Express set passes &ge; 95% recall on three consecutive
+        builds. This is the only metric with that strictness because it is
+        the only one where a miss can cause real-world harm.
+      </div>
+
+      <footer class="foot">
+        <span>La Trobe assistant &middot; metrics catalogue &middot; Phase 1</span>
+        <span>v0.1 &middot; companion to <a href="infrastructure.html">infrastructure.html</a> &middot; <a href="decisions-and-rationale.html">decisions-and-rationale.html</a> &middot; <a href="day-1-dashboard.html">day-1-dashboard.html</a></span>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Infrastructure &amp; components · La Trobe assistant · Phase 1</title>
+    <title>Infrastructure &amp; components · La Trobe assistant</title>
     <style>
       :root {
         --ltu-red: #C8102E;
@@ -222,19 +222,27 @@
     <div class="container">
 
       <header class="cover">
-        <div class="eyebrow">La Trobe assistant · infrastructure &amp; components · Phase 1</div>
+        <div class="eyebrow">La Trobe assistant · infrastructure &amp; components</div>
         <h1>Infrastructure, components, repositories</h1>
         <p class="lead">
-          Phase 1: replacement of Charlie. The full inventory of what the
-          production build needs &mdash; Azure resources, application
-          services, repositories, retrieval pipeline, external integrations,
-          and the in-channel wellbeing handoff. Four reactive patterns
-          (Inform-and-Act, Status-Check, Decide, Express) on the web at
-          launch.
+          Replacement of Charlie. The full inventory of what the production
+          build needs &mdash; Azure resources, the application services we
+          build, the managed Azure AI Foundry runtime at the centre,
+          repositories, external integrations, and the in-channel wellbeing
+          handoff. Four reactive patterns (Inform-and-Act, Status-Check,
+          Decide, Express) on the web at launch; Nudge and Check-in follow up.
         </p>
         <p class="meta">
-          Updated 11 May 2026 · companion to
-          <code>decisions-and-rationale.html</code> and
+          Reflects the settled runtime/provider direction &mdash; <strong>D1</strong>
+          (fully-managed Foundry runtime, Australia East; models configurable
+          via the catalogue + Model Router) and <strong>D2&ndash;D6</strong>.
+          Updated 29 May 2026 · companion to
+          <a href="decisions-and-rationale.html">decisions-and-rationale.html</a>,
+          <a href="duplication-buy-vs-build-review.html">duplication-buy-vs-build-review.html</a>,
+          <a href="managed-foundry-alignment-review.html">managed-foundry-alignment-review.html</a>,
+          <a href="ssaf-use-case.html">ssaf-use-case.html</a>,
+          <a href="metrics-catalogue.html">metrics-catalogue.html</a>,
+          <a href="day-1-dashboard.html">day-1-dashboard.html</a> and
           <code>personalisation-one-pager.pdf</code>
         </p>
       </header>
@@ -242,8 +250,8 @@
       <div class="legend">
         <strong>Deployment shape</strong>
         <span class="swatch"><span class="tag azure">Azure</span>native managed service</span>
-        <span class="swatch"><span class="tag oss">OSS</span>library / image inside compute</span>
-        <span class="swatch"><span class="tag saas">SaaS</span>external API</span>
+        <span class="swatch"><span class="tag saas">Foundry</span>managed AI (Foundry) / external SaaS</span>
+        <span class="swatch"><span class="tag oss">Build</span>service / library we own, inside compute</span>
         <span class="swatch"><span class="tag ltu">LTU</span>existing institutional system</span>
         <span class="swatch"><span class="tag config">Config</span>code / config artifact</span>
       </div>
@@ -253,7 +261,7 @@
         <ol>
           <li><a href="#topology">Topology &mdash; the big picture</a></li>
           <li><a href="#compute">Compute</a></li>
-          <li><a href="#app-services">Application services (orchestrator + pipeline)</a></li>
+          <li><a href="#app-services">Application services (pattern router + Foundry runtime)</a></li>
           <li><a href="#repositories">Repositories (every store, mapped)</a></li>
           <li><a href="#data">Data tier (Azure specifics)</a></li>
           <li><a href="#network">Networking &amp; edge</a></li>
@@ -271,260 +279,310 @@
 
       <!-- ====================================================== -->
       <h2 id="topology">1. Topology &mdash; the big picture</h2>
-      <p class="section-lead">Public traffic enters at Front Door. Identity is Entra. Compute is Container Apps + Static Web Apps. Application services (orchestrator, retrieval pipeline, classifier, safety subsystem) run inside compute. Three MCP tool servers (also Container Apps) sit between the orchestrator and external LTU systems, exposing tools via HTTP/SSE. Repositories span Azure-managed (Postgres, Redis, Blob), LTU systems (SIS via SAP PO), and external providers (LLM API).</p>
+      <p class="section-lead">Public traffic enters at Front Door. Identity is Entra. The pieces we build run on Container Apps + Static Web Apps: a <strong>Pattern Router</strong> (the intent-assessment tier) classifies each turn <em>before</em> the model runs, then configures the managed agent. The AI runtime itself is <strong>Azure AI Foundry Agent Service</strong> (managed, AU East &mdash; D1); knowledge grounding is <strong>Azure AI Search</strong> (managed &mdash; D2), and prompt-injection / self-harm safety use <strong>Prompt Shields + Content Safety</strong> (managed &mdash; D3). Three MCP tool servers (also Container Apps) sit between the router and external LTU systems, exposing tools via HTTP/SSE. Repositories span Azure-managed (Postgres, Redis, Blob) and LTU systems (SIS via SAP PO). Model calls stay inside the Foundry catalogue in-region &mdash; no external model-API egress.</p>
 
-      <svg class="diagram" viewBox="0 0 1080 690" xmlns="http://www.w3.org/2000/svg">
+      <svg class="diagram" viewBox="0 0 1100 845" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="ar2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
             <path d="M0,0 L0,6 L6,3 z" fill="#9CA3AF"/>
           </marker>
+          <marker id="arR" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L7,3 z" fill="#C8102E"/>
+          </marker>
         </defs>
 
-        <!-- Top row: Student → Front Door → APIM ↔ Entra -->
-        <rect x="20" y="14" width="170" height="48" rx="8" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.5"/>
-        <text x="105" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Student device</text>
-        <text x="105" y="50" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.75">Browser · web app</text>
+        <!-- Entry chain -->
+        <rect x="20" y="20" width="180" height="46" rx="8" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.5"/>
+        <text x="110" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Student device</text>
+        <text x="110" y="56" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.75">Browser · web app</text>
 
-        <rect x="220" y="14" width="180" height="48" rx="8" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.5"/>
-        <text x="310" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">Front Door</text>
-        <text x="310" y="50" text-anchor="middle" font-size="9" fill="#1E3A8A" opacity="0.85">CDN · WAF · DDoS</text>
+        <rect x="220" y="20" width="180" height="46" rx="8" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.5"/>
+        <text x="310" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">Front Door</text>
+        <text x="310" y="56" text-anchor="middle" font-size="9" fill="#1E3A8A" opacity="0.85">CDN · WAF · DDoS</text>
 
-        <rect x="430" y="14" width="180" height="48" rx="8" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.5"/>
-        <text x="520" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">API Management</text>
-        <text x="520" y="50" text-anchor="middle" font-size="9" fill="#1E3A8A" opacity="0.85">Auth · rate-limit</text>
+        <rect x="430" y="20" width="180" height="46" rx="8" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.5"/>
+        <text x="520" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">API Management</text>
+        <text x="520" y="56" text-anchor="middle" font-size="9" fill="#1E3A8A" opacity="0.85">Auth · rate-limit</text>
 
-        <rect x="640" y="14" width="150" height="48" rx="8" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.5"/>
-        <text x="715" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">Entra ID</text>
-        <text x="715" y="50" text-anchor="middle" font-size="9" fill="#1E3A8A" opacity="0.85">SSO · MFA · student_id</text>
+        <rect x="640" y="20" width="150" height="46" rx="8" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.5"/>
+        <text x="715" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1E3A8A">Entra ID</text>
+        <text x="715" y="56" text-anchor="middle" font-size="9" fill="#1E3A8A" opacity="0.85">SSO · MFA · student_id</text>
 
-        <!-- Compute zone -->
-        <rect x="20" y="84" width="780" height="170" rx="10" fill="none" stroke="#1F2A44" stroke-width="1.2" stroke-dasharray="5,4"/>
-        <text x="34" y="102" font-size="10" font-weight="700" letter-spacing="0.5" fill="#1F2A44">AZURE COMPUTE (Container Apps · Static Web Apps)</text>
+        <!-- Zone B: we build -->
+        <rect x="20" y="92" width="770" height="182" rx="10" fill="none" stroke="#1F2A44" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="34" y="110" font-size="10" font-weight="700" letter-spacing="0.5" fill="#1F2A44">WE BUILD · CHANNEL &amp; PATTERN CONTROL (Container Apps · Static Web Apps)</text>
 
         <!-- Frontend -->
-        <rect x="34" y="115" width="190" height="125" rx="6" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.2"/>
-        <text x="129" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#1E3A8A">Static Web Apps</text>
-        <text x="129" y="148" text-anchor="middle" font-size="9" fill="#1E3A8A">React + Vite build</text>
-        <text x="129" y="161" text-anchor="middle" font-size="9" fill="#1E3A8A">Global CDN · PWA-ready</text>
-        <text x="129" y="200" text-anchor="middle" font-size="9" fill="#1E3A8A" opacity="0.65">Frontend</text>
-        <text x="129" y="220" text-anchor="middle" font-size="8" fill="#1E3A8A" opacity="0.6" font-style="italic">INF3 · T12</text>
+        <rect x="34" y="124" width="180" height="128" rx="6" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.2"/>
+        <text x="124" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="#1E3A8A">Static Web Apps</text>
+        <text x="124" y="162" text-anchor="middle" font-size="9" fill="#1E3A8A">React + Vite · CDN</text>
+        <text x="124" y="178" text-anchor="middle" font-size="9" fill="#1E3A8A">Streaming · feedback</text>
+        <text x="124" y="200" text-anchor="middle" font-size="9" fill="#1E3A8A">Express held-state UI</text>
+        <text x="124" y="214" text-anchor="middle" font-size="9" fill="#1E3A8A">(composer lock)</text>
+        <text x="124" y="240" text-anchor="middle" font-size="8" fill="#1E3A8A" opacity="0.6" font-style="italic">INF3 · T12</text>
 
-        <!-- Orchestrator -->
-        <rect x="240" y="115" width="280" height="125" rx="8" fill="#FFFFFF" stroke="#1F2A44" stroke-width="2"/>
-        <text x="380" y="134" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Orchestrator (Container Apps)</text>
-        <text x="380" y="148" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">TS / Node · stateless · KEDA autoscale</text>
+        <!-- Pattern Router (hero) -->
+        <rect x="230" y="124" width="330" height="128" rx="8" fill="#FFFFFF" stroke="#C8102E" stroke-width="2.2"/>
+        <text x="395" y="141" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9F1239">Agent Gateway · Pattern Router</text>
+        <text x="395" y="153" text-anchor="middle" font-size="8" fill="#C8102E">classify-before-Foundry · the tier Foundry does not provide</text>
 
-        <rect x="252" y="156" width="116" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="310" y="170" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">LLMClient (T15)</text>
-        <text x="310" y="182" text-anchor="middle" font-size="8" fill="#065F46">Provider-agnostic</text>
+        <rect x="242" y="160" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
+        <text x="317" y="174" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">① Classifier (PR2)</text>
+        <text x="317" y="186" text-anchor="middle" font-size="7.5" fill="#065F46">pattern·topic·purpose·risk</text>
 
-        <rect x="374" y="156" width="140" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="444" y="170" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">Classifier (PR2)</text>
-        <text x="444" y="182" text-anchor="middle" font-size="8" fill="#065F46">pattern · topic · purpose</text>
+        <rect x="398" y="160" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
+        <text x="473" y="174" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">② Distress classifier</text>
+        <text x="473" y="186" text-anchor="middle" font-size="7.5" fill="#065F46">seeded by Content Safety</text>
 
-        <rect x="252" y="194" width="116" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="310" y="208" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">4 Skills (PR3)</text>
-        <text x="310" y="220" text-anchor="middle" font-size="8" fill="#065F46">reactive patterns</text>
+        <rect x="242" y="198" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
+        <text x="317" y="212" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">③ Skill + model select</text>
+        <text x="317" y="224" text-anchor="middle" font-size="7.5" fill="#065F46">configures Foundry · D4·T16</text>
 
-        <rect x="374" y="194" width="140" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="444" y="208" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">Safety subsystem</text>
-        <text x="444" y="220" text-anchor="middle" font-size="8" fill="#065F46">T11 · A7 · SEC5 · SEC8</text>
+        <rect x="398" y="198" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
+        <text x="473" y="212" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">④ Audit · budgets</text>
+        <text x="473" y="224" text-anchor="middle" font-size="7.5" fill="#065F46">claims→student_id · MCP client</text>
 
-        <!-- SAP PO adapter — runs in the same Container Apps pod as the orchestrator -->
-        <rect x="252" y="229" width="262" height="11" rx="3" fill="#D1FAE5" stroke="#10B981" stroke-width="0.8"/>
-        <text x="383" y="237" text-anchor="middle" font-size="8" font-weight="700" fill="#065F46">MCP client · T19 · calls tool servers via HTTP/SSE</text>
+        <text x="395" y="246" text-anchor="middle" font-size="8" fill="#9F1239" font-style="italic">Container Apps · KEDA autoscale · 5–10× census waves · T19</text>
 
-        <!-- Retrieval pipeline -->
-        <rect x="540" y="115" width="245" height="125" rx="8" fill="#FFFFFF" stroke="#1F2A44" stroke-width="1.5"/>
-        <text x="662" y="134" text-anchor="middle" font-size="12" font-weight="700" fill="#1F2A44">Retrieval pipeline</text>
-        <text x="662" y="148" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.75">In-orchestrator · OSS libs</text>
+        <!-- Skills library -->
+        <rect x="576" y="124" width="200" height="128" rx="6" fill="#D1FAE5" stroke="#10B981" stroke-width="1.4"/>
+        <text x="676" y="146" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065F46">Skills &amp; prompt library</text>
+        <text x="676" y="162" text-anchor="middle" font-size="8" fill="#065F46">git-versioned · PR3·PR5·PR6</text>
+        <text x="676" y="178" text-anchor="middle" font-size="8" fill="#065F46">system · classifier · 4 skills</text>
+        <text x="676" y="194" text-anchor="middle" font-size="8" fill="#065F46">feeds Foundry per-turn</text>
+        <text x="676" y="206" text-anchor="middle" font-size="8" fill="#065F46">instructions</text>
+        <text x="676" y="226" text-anchor="middle" font-size="7.5" fill="#065F46" opacity="0.8">4 reactive at launch ·</text>
+        <text x="676" y="238" text-anchor="middle" font-size="7.5" fill="#065F46" opacity="0.8">Nudge+Check-in follow-up</text>
 
-        <rect x="552" y="156" width="106" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="605" y="170" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">Docling (T7)</text>
-        <text x="605" y="182" text-anchor="middle" font-size="8" fill="#065F46">parse PDFs/HTML</text>
+        <!-- Zone C: Foundry managed -->
+        <rect x="20" y="286" width="770" height="150" rx="10" fill="none" stroke="#6D28D9" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="34" y="304" font-size="10" font-weight="700" letter-spacing="0.5" fill="#6D28D9">AZURE AI FOUNDRY · MANAGED AI RUNTIME (Australia East · D1)</text>
 
-        <rect x="664" y="156" width="113" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="720" y="170" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">LlamaIndex (T7)</text>
-        <text x="720" y="182" text-anchor="middle" font-size="8" fill="#065F46">ingestion + retrieval</text>
+        <rect x="34" y="316" width="180" height="104" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
+        <text x="124" y="338" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6D28D9">Foundry Agent Service</text>
+        <text x="124" y="356" text-anchor="middle" font-size="8.5" fill="#5B21B6">hosted agent runtime</text>
+        <text x="124" y="370" text-anchor="middle" font-size="8.5" fill="#5B21B6">tool calling · threads</text>
+        <text x="124" y="388" text-anchor="middle" font-size="8" fill="#9F1239" font-weight="700">configured per turn</text>
+        <text x="124" y="404" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">GA · D1</text>
 
-        <rect x="552" y="194" width="106" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="605" y="208" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">BGE rerank (T6)</text>
-        <text x="605" y="220" text-anchor="middle" font-size="8" fill="#065F46">cross-encoder</text>
+        <rect x="224" y="316" width="180" height="104" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
+        <text x="314" y="338" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6D28D9">Model Router + Catalog</text>
+        <text x="314" y="356" text-anchor="middle" font-size="8.5" fill="#5B21B6">Cost/Quality/Balanced</text>
+        <text x="314" y="370" text-anchor="middle" font-size="8.5" fill="#5B21B6">GPT-family · AU East</text>
+        <text x="314" y="388" text-anchor="middle" font-size="8" fill="#5B21B6">no model in code</text>
+        <text x="314" y="404" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">GA core · D4 · T16</text>
 
-        <rect x="664" y="194" width="113" height="32" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="720" y="208" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">Hybrid (T4)</text>
-        <text x="720" y="220" text-anchor="middle" font-size="8" fill="#065F46">BM25 + vector + RRF</text>
+        <rect x="414" y="316" width="180" height="104" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
+        <text x="504" y="336" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Prompt Shields +</text>
+        <text x="504" y="350" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Content Safety</text>
+        <text x="504" y="368" text-anchor="middle" font-size="8" fill="#5B21B6">direct + XPIA injection</text>
+        <text x="504" y="382" text-anchor="middle" font-size="8" fill="#5B21B6">self-harm severity →</text>
+        <text x="504" y="394" text-anchor="middle" font-size="8" fill="#5B21B6">distress classifier</text>
+        <text x="504" y="412" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">GA · D3</text>
 
-        <!-- MCP Tool Servers zone -->
-        <rect x="20" y="258" width="780" height="92" rx="10" fill="none" stroke="#0369A1" stroke-width="1.2" stroke-dasharray="5,4"/>
-        <text x="34" y="275" font-size="10" font-weight="700" letter-spacing="0.5" fill="#0369A1">MCP TOOL SERVERS (Container Apps · internal · HTTP/SSE)</text>
+        <rect x="604" y="316" width="172" height="104" rx="6" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6"/>
+        <text x="690" y="338" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1D4ED8">Azure AI Search</text>
+        <text x="690" y="356" text-anchor="middle" font-size="8" fill="#1E40AF">vector+hybrid+semantic</text>
+        <text x="690" y="370" text-anchor="middle" font-size="8" fill="#1E40AF">managed retrieval</text>
+        <text x="690" y="384" text-anchor="middle" font-size="8" fill="#1E40AF">replaces self-host pipe</text>
+        <text x="690" y="400" text-anchor="middle" font-size="8" fill="#1D4ED8" font-style="italic">GA · D2</text>
+        <text x="690" y="412" text-anchor="middle" font-size="7.5" fill="#6D28D9">Foundry IQ (preview) later</text>
 
-        <rect x="34" y="283" width="238" height="58" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.2"/>
-        <text x="153" y="299" text-anchor="middle" font-size="9.5" font-weight="700" fill="#075985">ltu-records-mcp</text>
-        <text x="153" y="312" text-anchor="middle" font-size="8" fill="#075985">records_lookup · check_eligibility</text>
-        <text x="153" y="324" text-anchor="middle" font-size="8" fill="#075985" opacity="0.85">→ SAP PO → SIS read path</text>
-        <text x="153" y="334" text-anchor="middle" font-size="7.5" fill="#075985" opacity="0.7" font-style="italic">T19</text>
+        <!-- Zone D: MCP tool servers -->
+        <rect x="20" y="448" width="770" height="92" rx="10" fill="none" stroke="#0369A1" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="34" y="466" font-size="10" font-weight="700" letter-spacing="0.5" fill="#0369A1">MCP TOOL SERVERS (Container Apps · internal · HTTP/SSE · T19)</text>
 
-        <rect x="282" y="283" width="238" height="58" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.2"/>
-        <text x="401" y="299" text-anchor="middle" font-size="9.5" font-weight="700" fill="#075985">ltu-actions-mcp</text>
-        <text x="401" y="312" text-anchor="middle" font-size="8" fill="#075985">lodge_action (5 Action APIs)</text>
-        <text x="401" y="324" text-anchor="middle" font-size="8" fill="#075985" opacity="0.85">→ SAP PO → SIS write path</text>
-        <text x="401" y="334" text-anchor="middle" font-size="7.5" fill="#075985" opacity="0.7" font-style="italic">T19 · T18</text>
+        <rect x="34" y="478" width="238" height="54" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.2"/>
+        <text x="153" y="496" text-anchor="middle" font-size="9.5" font-weight="700" fill="#075985">ltu-records-mcp</text>
+        <text x="153" y="509" text-anchor="middle" font-size="8" fill="#075985">records_lookup · check_eligibility</text>
+        <text x="153" y="521" text-anchor="middle" font-size="8" fill="#075985" opacity="0.85">→ SAP PO → SIS read path</text>
 
-        <rect x="530" y="283" width="262" height="58" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.2"/>
-        <text x="661" y="299" text-anchor="middle" font-size="9.5" font-weight="700" fill="#075985">ltu-wellbeing-mcp</text>
-        <text x="661" y="312" text-anchor="middle" font-size="8" fill="#075985">request_advisor_handoff · log_distress_signal</text>
-        <text x="661" y="324" text-anchor="middle" font-size="8" fill="#075985" opacity="0.85">→ contact-centre platform · Redis hold state</text>
-        <text x="661" y="334" text-anchor="middle" font-size="7.5" fill="#075985" opacity="0.7" font-style="italic">T19 · A3 · A7</text>
+        <rect x="282" y="478" width="238" height="54" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.2"/>
+        <text x="401" y="496" text-anchor="middle" font-size="9.5" font-weight="700" fill="#075985">ltu-actions-mcp</text>
+        <text x="401" y="509" text-anchor="middle" font-size="8" fill="#075985">lodge_action (5 Action APIs)</text>
+        <text x="401" y="521" text-anchor="middle" font-size="8" fill="#075985" opacity="0.85">→ SAP PO → SIS write · T18</text>
 
-        <!-- Data tier zone -->
-        <rect x="20" y="360" width="780" height="120" rx="10" fill="none" stroke="#9F1239" stroke-width="1.2" stroke-dasharray="5,4"/>
-        <text x="34" y="378" font-size="10" font-weight="700" letter-spacing="0.5" fill="#9F1239">REPOSITORIES (Azure-managed · per-student state · audit)</text>
+        <rect x="530" y="478" width="246" height="54" rx="6" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.2"/>
+        <text x="653" y="496" text-anchor="middle" font-size="9.5" font-weight="700" fill="#075985">ltu-wellbeing-mcp</text>
+        <text x="653" y="509" text-anchor="middle" font-size="8" fill="#075985">request_advisor_handoff · log_distress_signal</text>
+        <text x="653" y="521" text-anchor="middle" font-size="8" fill="#075985" opacity="0.85">→ contact-centre · Redis hold · A3·A7</text>
 
-        <rect x="34" y="390" width="186" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
-        <text x="127" y="409" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">PostgreSQL Flexible</text>
-        <text x="127" y="423" text-anchor="middle" font-size="9" fill="#9F1239">USER · MEMORY · session log</text>
-        <text x="127" y="435" text-anchor="middle" font-size="9" fill="#9F1239">audit · vectors (pgvector)</text>
-        <text x="127" y="451" text-anchor="middle" font-size="9" fill="#9F1239">BM25 (ParadeDB) · RLS</text>
-        <text x="127" y="463" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">INF5 · A5 · A6 · T10</text>
+        <!-- Zone E: repositories -->
+        <rect x="20" y="552" width="770" height="120" rx="10" fill="none" stroke="#9F1239" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="34" y="570" font-size="10" font-weight="700" letter-spacing="0.5" fill="#9F1239">REPOSITORIES (Azure-managed · per-student state · audit)</text>
 
-        <rect x="230" y="390" width="170" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
-        <text x="315" y="409" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Redis Premium</text>
-        <text x="315" y="425" text-anchor="middle" font-size="9" fill="#9F1239">Hot per-student state</text>
-        <text x="315" y="439" text-anchor="middle" font-size="9" fill="#9F1239">Token budget counters</text>
-        <text x="315" y="453" text-anchor="middle" font-size="9" fill="#9F1239">Distress hold state</text>
-        <text x="315" y="463" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">INF6 · T16 · A7</text>
+        <rect x="34" y="582" width="186" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
+        <text x="127" y="601" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">PostgreSQL Flexible</text>
+        <text x="127" y="615" text-anchor="middle" font-size="9" fill="#9F1239">USER · MEMORY · session</text>
+        <text x="127" y="627" text-anchor="middle" font-size="9" fill="#9F1239">audit · pgvector (memory)</text>
+        <text x="127" y="643" text-anchor="middle" font-size="9" fill="#9F1239">RLS · we own (D5)</text>
+        <text x="127" y="655" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">INF5 · A5 · A6</text>
 
-        <rect x="410" y="390" width="180" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
-        <text x="500" y="409" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Blob Storage</text>
-        <text x="500" y="425" text-anchor="middle" font-size="9" fill="#9F1239">Knowledge corpus (hot)</text>
-        <text x="500" y="439" text-anchor="middle" font-size="9" fill="#9F1239">Audit log archive (cold)</text>
-        <text x="500" y="453" text-anchor="middle" font-size="9" fill="#9F1239">Knowledge ingestion source</text>
-        <text x="500" y="463" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">INF7 · K1 · K2 · SEC4</text>
+        <rect x="230" y="582" width="170" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
+        <text x="315" y="601" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Redis Premium</text>
+        <text x="315" y="617" text-anchor="middle" font-size="9" fill="#9F1239">Hot per-student state</text>
+        <text x="315" y="631" text-anchor="middle" font-size="9" fill="#9F1239">Token budget counters</text>
+        <text x="315" y="645" text-anchor="middle" font-size="9" fill="#9F1239">Distress hold state</text>
+        <text x="315" y="657" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">INF6 · A7</text>
 
-        <rect x="600" y="390" width="185" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
-        <text x="692" y="409" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Key Vault</text>
-        <text x="692" y="425" text-anchor="middle" font-size="9" fill="#9F1239">Secrets · API keys</text>
-        <text x="692" y="439" text-anchor="middle" font-size="9" fill="#9F1239">Connection strings</text>
-        <text x="692" y="453" text-anchor="middle" font-size="9" fill="#9F1239">Managed identity access</text>
-        <text x="692" y="463" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">SEC11 · INF10</text>
+        <rect x="410" y="582" width="180" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
+        <text x="500" y="601" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Blob Storage</text>
+        <text x="500" y="617" text-anchor="middle" font-size="9" fill="#9F1239">Knowledge corpus source</text>
+        <text x="500" y="631" text-anchor="middle" font-size="9" fill="#9F1239">Audit log archive (cold)</text>
+        <text x="500" y="645" text-anchor="middle" font-size="9" fill="#9F1239">→ AI Search ingestion</text>
+        <text x="500" y="657" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">INF7 · K1 · K2 · SEC4</text>
 
-        <!-- External services row -->
-        <rect x="820" y="84" width="240" height="306" rx="10" fill="none" stroke="#5B21B6" stroke-width="1.2" stroke-dasharray="5,4"/>
-        <text x="835" y="102" font-size="10" font-weight="700" letter-spacing="0.5" fill="#5B21B6">EXTERNAL · OUTBOUND</text>
+        <rect x="600" y="582" width="186" height="78" rx="6" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5"/>
+        <text x="693" y="601" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Key Vault</text>
+        <text x="693" y="617" text-anchor="middle" font-size="9" fill="#9F1239">Secrets · API keys</text>
+        <text x="693" y="631" text-anchor="middle" font-size="9" fill="#9F1239">Connection strings</text>
+        <text x="693" y="645" text-anchor="middle" font-size="9" fill="#9F1239">Managed-identity access</text>
+        <text x="693" y="657" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.7" font-style="italic">SEC11 · INF10</text>
 
-        <rect x="832" y="115" width="216" height="74" rx="6" fill="#EDE9FE" stroke="#5B21B6" stroke-width="1.5"/>
-        <text x="940" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#5B21B6">LLM provider</text>
-        <text x="940" y="148" text-anchor="middle" font-size="9" fill="#5B21B6">Anthropic · Bedrock AU</text>
-        <text x="940" y="160" text-anchor="middle" font-size="9" fill="#5B21B6">Azure OpenAI AU · Vertex</text>
-        <text x="940" y="174" text-anchor="middle" font-size="9" fill="#5B21B6">Swappable via LLMClient</text>
-        <text x="940" y="184" text-anchor="middle" font-size="8" fill="#5B21B6" opacity="0.75" font-style="italic">T15 · T17</text>
+        <!-- External column -->
+        <rect x="820" y="92" width="260" height="344" rx="10" fill="none" stroke="#5B21B6" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="834" y="110" font-size="10" font-weight="700" letter-spacing="0.5" fill="#5B21B6">EXTERNAL · LTU SYSTEMS</text>
 
-        <rect x="832" y="200" width="216" height="74" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.5"/>
-        <text x="940" y="219" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">LTU SIS · Records</text>
-        <text x="940" y="233" text-anchor="middle" font-size="9" fill="#9F1239">Read API + 5 Action APIs</text>
-        <text x="940" y="247" text-anchor="middle" font-size="9" fill="#9F1239">defer · withdraw · transfer ·</text>
-        <text x="940" y="259" text-anchor="middle" font-size="9" fill="#9F1239">change-load · special-consid'n</text>
-        <text x="940" y="270" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.75" font-style="italic">R2 · R3 · L1 · L2 · Private Link</text>
+        <rect x="832" y="124" width="236" height="30" rx="5" fill="#FFFFFF" stroke="#C8102E" stroke-width="1.4"/>
+        <text x="950" y="143" text-anchor="middle" font-size="9.5" font-weight="700" fill="#9F1239">SAP PO integration bus · T18</text>
 
-        <rect x="832" y="285" width="216" height="70" rx="6" fill="#EDE9FE" stroke="#5B21B6" stroke-width="1.5"/>
-        <text x="940" y="303" text-anchor="middle" font-size="11" font-weight="700" fill="#5B21B6">Wellbeing handoff</text>
-        <text x="940" y="317" text-anchor="middle" font-size="9" fill="#5B21B6">Contact-centre · advisor queue</text>
-        <text x="940" y="331" text-anchor="middle" font-size="9" fill="#5B21B6">In-channel handoff</text>
-        <text x="940" y="345" text-anchor="middle" font-size="8" fill="#5B21B6" opacity="0.75" font-style="italic">A3 · R4 · Express path</text>
+        <rect x="832" y="166" width="236" height="110" rx="6" fill="#FFE4E6" stroke="#9F1239" stroke-width="1.5"/>
+        <text x="950" y="186" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">LTU SIS · Records</text>
+        <text x="950" y="202" text-anchor="middle" font-size="9" fill="#9F1239">Read API + 5 Action APIs</text>
+        <text x="950" y="216" text-anchor="middle" font-size="9" fill="#9F1239">defer · withdraw · transfer ·</text>
+        <text x="950" y="228" text-anchor="middle" font-size="9" fill="#9F1239">change-load · special-consid&rsquo;n</text>
+        <text x="950" y="246" text-anchor="middle" font-size="9" fill="#9F1239">via SAP PO · Private Link</text>
+        <text x="950" y="264" text-anchor="middle" font-size="8" fill="#9F1239" opacity="0.75" font-style="italic">R2 · R3 · L1 · L2</text>
 
-        <!-- Observability + Operations zone -->
-        <rect x="20" y="496" width="1040" height="120" rx="10" fill="none" stroke="#1F2A44" stroke-width="1.2" stroke-dasharray="5,4"/>
-        <text x="34" y="514" font-size="10" font-weight="700" letter-spacing="0.5" fill="#1F2A44">OBSERVABILITY · OPERATIONS</text>
+        <rect x="832" y="288" width="236" height="90" rx="6" fill="#EDE9FE" stroke="#5B21B6" stroke-width="1.5"/>
+        <text x="950" y="308" text-anchor="middle" font-size="11" font-weight="700" fill="#5B21B6">Wellbeing handoff</text>
+        <text x="950" y="324" text-anchor="middle" font-size="9" fill="#5B21B6">Contact-centre · advisor queue</text>
+        <text x="950" y="338" text-anchor="middle" font-size="9" fill="#5B21B6">In-channel handoff</text>
+        <text x="950" y="352" text-anchor="middle" font-size="9" fill="#5B21B6">student never re-explains</text>
+        <text x="950" y="370" text-anchor="middle" font-size="8" fill="#5B21B6" opacity="0.75" font-style="italic">A3 · R4 · Express path</text>
 
-        <rect x="34" y="526" width="186" height="78" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
-        <text x="127" y="544" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">Application Insights</text>
-        <text x="127" y="560" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">Traces · metrics · logs</text>
-        <text x="127" y="574" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">OpenTelemetry · correlation</text>
-        <text x="127" y="587" text-anchor="middle" font-size="8" fill="#1F2A44" opacity="0.7" font-style="italic">INF11 · A8</text>
+        <text x="950" y="402" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">Model calls stay inside Foundry</text>
+        <text x="950" y="414" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">(AU East) — no external model egress</text>
+        <text x="950" y="426" text-anchor="middle" font-size="8" fill="#5B21B6">Tools reached only via MCP servers</text>
 
-        <rect x="230" y="526" width="170" height="78" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
-        <text x="315" y="544" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">Log Analytics</text>
-        <text x="315" y="560" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">KQL · alerts</text>
-        <text x="315" y="574" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">SLO dashboards</text>
-        <text x="315" y="587" text-anchor="middle" font-size="8" fill="#1F2A44" opacity="0.7" font-style="italic">INF12</text>
+        <!-- Zone: management plane (we build) -->
+        <rect x="820" y="448" width="260" height="92" rx="10" fill="none" stroke="#059669" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="834" y="466" font-size="10" font-weight="700" letter-spacing="0.5" fill="#047857">WE BUILD · MANAGEMENT PLANE</text>
+        <rect x="832" y="478" width="120" height="54" rx="6" fill="#D1FAE5" stroke="#059669" stroke-width="1.2"/>
+        <text x="892" y="496" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">Admin Console</text>
+        <text x="892" y="509" text-anchor="middle" font-size="7.5" fill="#065F46">knowledge · skills · prompts</text>
+        <text x="892" y="520" text-anchor="middle" font-size="7.5" fill="#065F46">approvals · audit</text>
+        <rect x="958" y="478" width="110" height="54" rx="6" fill="#D1FAE5" stroke="#059669" stroke-width="1.2"/>
+        <text x="1013" y="496" text-anchor="middle" font-size="9" font-weight="700" fill="#065F46">Tool Registry UI</text>
+        <text x="1013" y="509" text-anchor="middle" font-size="7.5" fill="#065F46">schemas · permissions</text>
+        <text x="1013" y="520" text-anchor="middle" font-size="7.5" fill="#065F46">test console</text>
 
-        <rect x="410" y="526" width="180" height="78" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
-        <text x="500" y="544" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">Cost Management</text>
-        <text x="500" y="560" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">Per-student-tagged</text>
-        <text x="500" y="574" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">Budget alerts</text>
-        <text x="500" y="587" text-anchor="middle" font-size="8" fill="#1F2A44" opacity="0.7" font-style="italic">A7 · T16</text>
+        <!-- Zone F: observability -->
+        <rect x="20" y="684" width="1060" height="104" rx="10" fill="none" stroke="#1F2A44" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="34" y="702" font-size="10" font-weight="700" letter-spacing="0.5" fill="#1F2A44">OBSERVABILITY · OPERATIONS</text>
 
-        <rect x="600" y="526" width="185" height="78" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
-        <text x="692" y="544" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">ACR</text>
-        <text x="692" y="560" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">Container images</text>
-        <text x="692" y="574" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">SBOM · scanning</text>
-        <text x="692" y="587" text-anchor="middle" font-size="8" fill="#1F2A44" opacity="0.7" font-style="italic">INF4 · SEC12</text>
+        <rect x="34" y="712" width="186" height="64" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
+        <text x="127" y="732" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1F2A44">Application Insights</text>
+        <text x="127" y="748" text-anchor="middle" font-size="8.5" fill="#1F2A44" opacity="0.85">Traces · metrics · logs</text>
+        <text x="127" y="762" text-anchor="middle" font-size="8.5" fill="#1F2A44" opacity="0.85">+ Foundry eval / tracing</text>
+        <text x="127" y="772" text-anchor="middle" font-size="7.5" fill="#1F2A44" opacity="0.7" font-style="italic">INF11 · A8</text>
 
-        <rect x="800" y="526" width="240" height="78" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
-        <text x="920" y="544" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">CI/CD</text>
-        <text x="920" y="560" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">GitHub Actions · Bicep</text>
-        <text x="920" y="574" text-anchor="middle" font-size="9" fill="#1F2A44" opacity="0.85">Blue/green via revisions</text>
-        <text x="920" y="587" text-anchor="middle" font-size="8" fill="#1F2A44" opacity="0.7" font-style="italic">INF14 · INF15</text>
+        <rect x="230" y="712" width="170" height="64" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
+        <text x="315" y="732" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1F2A44">Log Analytics</text>
+        <text x="315" y="748" text-anchor="middle" font-size="8.5" fill="#1F2A44" opacity="0.85">KQL · SLO alerts</text>
+        <text x="315" y="764" text-anchor="middle" font-size="7.5" fill="#1F2A44" opacity="0.7" font-style="italic">INF12</text>
 
-        <!-- Flow lines -->
+        <rect x="410" y="712" width="180" height="64" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
+        <text x="500" y="732" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1F2A44">Cost Management</text>
+        <text x="500" y="748" text-anchor="middle" font-size="8.5" fill="#1F2A44" opacity="0.85">Per-student-tagged · PTU</text>
+        <text x="500" y="764" text-anchor="middle" font-size="7.5" fill="#1F2A44" opacity="0.7" font-style="italic">A7 · T16</text>
+
+        <rect x="600" y="712" width="185" height="64" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
+        <text x="692" y="732" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1F2A44">ACR</text>
+        <text x="692" y="748" text-anchor="middle" font-size="8.5" fill="#1F2A44" opacity="0.85">Images · SBOM · scan</text>
+        <text x="692" y="764" text-anchor="middle" font-size="7.5" fill="#1F2A44" opacity="0.7" font-style="italic">INF4 · SEC12</text>
+
+        <rect x="800" y="712" width="280" height="64" rx="6" fill="#FAFAF9" stroke="#1F2A44" stroke-width="1.2"/>
+        <text x="940" y="732" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1F2A44">CI/CD</text>
+        <text x="940" y="748" text-anchor="middle" font-size="8.5" fill="#1F2A44" opacity="0.85">GitHub Actions · Bicep · blue/green</text>
+        <text x="940" y="764" text-anchor="middle" font-size="7.5" fill="#1F2A44" opacity="0.7" font-style="italic">INF14 · INF15</text>
+
+        <!-- Flows -->
         <g stroke="#9CA3AF" stroke-width="1.2" fill="none">
-          <path d="M190 38 L 220 38" marker-end="url(#ar2)"/>
-          <path d="M400 38 L 430 38" marker-end="url(#ar2)"/>
-          <path d="M610 38 L 640 38" stroke-dasharray="3,3" marker-end="url(#ar2)"/>
-          <path d="M520 62 L 380 115" marker-end="url(#ar2)"/>
-          <!-- Orchestrator down to repos (shifted +90) -->
-          <path d="M310 240 L 127 390" marker-end="url(#ar2)"/>
-          <path d="M380 240 L 315 390" marker-end="url(#ar2)"/>
-          <path d="M444 240 L 500 390" marker-end="url(#ar2)"/>
-          <path d="M520 240 L 692 390" stroke-dasharray="3,3" marker-end="url(#ar2)"/>
-          <!-- Retrieval to Blob and Postgres (shifted +90) -->
-          <path d="M662 240 L 500 390" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <path d="M662 240 L 127 390" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <!-- Orchestrator to LLM provider (direct) -->
-          <path d="M520 178 L 832 152" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <!-- Orchestrator to MCP tool servers -->
-          <path d="M350 240 L 153 283" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <path d="M400 240 L 401 283" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <path d="M470 240 L 661 283" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <!-- MCP tool servers to external systems -->
-          <path d="M272 312 L 832 237" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <path d="M520 312 L 832 252" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <path d="M792 312 L 832 320" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
-          <!-- Observability (shifted +90) -->
-          <path d="M380 240 L 127 526" stroke-dasharray="2,3" marker-end="url(#ar2)"/>
+          <path d="M200 43 L220 43" marker-end="url(#ar2)"/>
+          <path d="M400 43 L430 43" marker-end="url(#ar2)"/>
+          <path d="M610 43 L640 43" stroke-dasharray="3,3" marker-end="url(#ar2)"/>
+          <path d="M520 66 L410 124" marker-end="url(#ar2)"/>
         </g>
+        <!-- router -> Foundry agent (hero) -->
+        <path d="M340 252 L150 316" stroke="#C8102E" stroke-width="2.2" fill="none" marker-end="url(#arR)"/>
+        <text x="232" y="288" text-anchor="middle" font-size="8" fill="#C8102E" font-weight="700">classified turn → skill + model</text>
+        <!-- skills -> agent -->
+        <path d="M620 252 L205 318" stroke="#C8102E" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#arR)"/>
+        <!-- Foundry internal chain -->
+        <g stroke="#9CA3AF" stroke-width="1.2" fill="none">
+          <path d="M214 368 L224 368" marker-end="url(#ar2)"/>
+          <path d="M404 368 L414 368" marker-end="url(#ar2)"/>
+          <path d="M594 368 L604 368" marker-end="url(#ar2)"/>
+        </g>
+        <!-- router -> MCP -->
+        <g stroke="#9CA3AF" stroke-width="1.2" fill="none" stroke-dasharray="4,3">
+          <path d="M340 252 L153 478" marker-end="url(#ar2)"/>
+          <path d="M395 252 L401 478" marker-end="url(#ar2)"/>
+          <path d="M450 252 L653 478" marker-end="url(#ar2)"/>
+        </g>
+        <!-- router -> repos -->
+        <path d="M300 252 L127 582" stroke="#9CA3AF" stroke-width="1.2" fill="none" stroke-dasharray="2,3" marker-end="url(#ar2)"/>
+        <!-- AI Search -> Blob -->
+        <path d="M690 420 L500 582" stroke="#9CA3AF" stroke-width="1.2" fill="none" stroke-dasharray="4,3" marker-end="url(#ar2)"/>
+        <!-- MCP -> SAP PO / SIS -->
+        <g stroke="#9CA3AF" stroke-width="1.2" fill="none" stroke-dasharray="4,3">
+          <path d="M272 505 L832 200" marker-end="url(#ar2)"/>
+          <path d="M520 505 L832 220" marker-end="url(#ar2)"/>
+          <path d="M776 505 L832 320" marker-end="url(#ar2)"/>
+        </g>
+        <!-- router -> observability -->
+        <path d="M395 252 L127 712" stroke="#9CA3AF" stroke-width="1.0" fill="none" stroke-dasharray="2,3" marker-end="url(#ar2)"/>
 
-        <!-- Legend at bottom -->
+        <!-- bottom legend -->
         <g font-size="9.5">
-          <rect x="34" y="638" width="14" height="10" rx="2" fill="#DBEAFE" stroke="#1E40AF"/>
-          <text x="53" y="647" fill="#1F2A44">Azure-native</text>
-          <rect x="140" y="638" width="14" height="10" rx="2" fill="#D1FAE5" stroke="#10B981"/>
-          <text x="159" y="647" fill="#1F2A44">OSS library / image</text>
-          <rect x="280" y="638" width="14" height="10" rx="2" fill="#E0F2FE" stroke="#0369A1"/>
-          <text x="299" y="647" fill="#1F2A44">MCP tool server</text>
-          <rect x="400" y="638" width="14" height="10" rx="2" fill="#EDE9FE" stroke="#5B21B6"/>
-          <text x="419" y="647" fill="#1F2A44">External SaaS / identity</text>
-          <rect x="570" y="638" width="14" height="10" rx="2" fill="#FFE4E6" stroke="#E11D48"/>
-          <text x="589" y="647" fill="#1F2A44">Private data / LTU system</text>
-          <rect x="760" y="638" width="14" height="10" rx="2" fill="#FAFAF9" stroke="#1F2A44"/>
-          <text x="779" y="647" fill="#1F2A44">Ops / supporting</text>
+          <rect x="34" y="800" width="14" height="10" rx="2" fill="#DBEAFE" stroke="#1E40AF"/>
+          <text x="53" y="809" fill="#1F2A44">Azure-native</text>
+          <rect x="150" y="800" width="14" height="10" rx="2" fill="#D1FAE5" stroke="#10B981"/>
+          <text x="169" y="809" fill="#1F2A44">We build</text>
+          <rect x="250" y="800" width="14" height="10" rx="2" fill="#EDE9FE" stroke="#6D28D9"/>
+          <text x="269" y="809" fill="#1F2A44">Managed AI (Foundry)</text>
+          <rect x="420" y="800" width="14" height="10" rx="2" fill="#E0F2FE" stroke="#0369A1"/>
+          <text x="439" y="809" fill="#1F2A44">MCP tool server</text>
+          <rect x="560" y="800" width="14" height="10" rx="2" fill="#FFE4E6" stroke="#E11D48"/>
+          <text x="579" y="809" fill="#1F2A44">Private data / LTU</text>
+          <rect x="700" y="800" width="14" height="10" rx="2" fill="#FAFAF9" stroke="#1F2A44"/>
+          <text x="719" y="809" fill="#1F2A44">Ops / supporting</text>
         </g>
-        <text x="540" y="672" text-anchor="middle" font-size="9" fill="#6B7280" font-style="italic">Solid lines = primary request flow · dashed = auth, audit, retrieval, or handoff paths</text>
+        <text x="550" y="832" text-anchor="middle" font-size="9" fill="#6B7280" font-style="italic">Red outline = the pattern-assessment tier we build in front of Foundry · dashed = auth, tool, retrieval, audit or handoff paths</text>
       </svg>
+
+      <div class="callout green">
+        <strong>See these components in action &mdash; the SSAF use case.</strong>
+        This page is the static map. For a worked example that traces one
+        enquiry through the boxes above &mdash; including why a single topic
+        (SSAF) routes three different ways by purpose &mdash; see the
+        <a href="ssaf-use-case.html">SSAF MVP walkthrough</a>. It is the
+        proposed launch use case: high volume, one back-end system (SIS).
+      </div>
 
       <!-- ====================================================== -->
       <h2 id="compute">2. Compute</h2>
-      <p class="section-lead">Where the application services run. Two Azure-native compute primitives at Phase 1.</p>
+      <p class="section-lead">Where the services we build run. The AI runtime is not here &mdash; it is the managed Foundry Agent Service (&sect;3). Two Azure-native compute primitives at launch.</p>
 
       <table>
         <thead><tr><th>Component</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
           <tr>
-            <td class="component">Orchestrator</td>
+            <td class="component">Agent Gateway · Pattern Router</td>
             <td class="shape"><span class="tag azure">Azure</span></td>
             <td class="choice">Container Apps · Premium</td>
-            <td class="why">Stateless · KEDA autoscale · scale-to-zero · blue/green via revisions. Hosts orchestrator service, retrieval pipeline, classifier, safety subsystem.</td>
+            <td class="why">Stateless · KEDA autoscale · scale-to-zero · blue/green via revisions. Hosts the Pattern Router (classify-before-Foundry), the distress classifier, the safety subsystem and the MCP client. The agent runtime itself is the managed Foundry Agent Service (D1); retrieval is managed Azure AI Search (D2).</td>
           </tr>
           <tr>
             <td class="component">Frontend</td>
@@ -542,23 +600,29 @@
       </table>
 
       <!-- ====================================================== -->
-      <h2 id="app-services">3. Application services <span class="pill">runs inside compute</span></h2>
-      <p class="section-lead">The orchestrator is a TS / Node service hosting a stack of application-layer components. None of these are Azure-managed services — they're libraries or code we own, deployed inside Container Apps.</p>
+      <h2 id="app-services">3. Application services <span class="pill">router we build + managed Foundry runtime</span></h2>
+      <p class="section-lead">Two halves. The <strong>Pattern Router</strong> is a TS / Node service we own, running on Container Apps: it classifies the turn, selects the skill prompt and the per-task model, enforces budgets and audit, and acts as the MCP client. It then invokes the <strong>managed Foundry Agent Service</strong>, which hosts the agent runtime, grounding and tool-calling. Per the settled build/buy split (D1&ndash;D4), what we keep is the intent-assessment, safety, personalisation and tool tiers <em>around</em> Foundry; what we stop self-hosting is the runtime, retrieval, injection defence and per-task routing.</p>
 
       <table>
         <thead><tr><th>Service</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
           <tr>
-            <td class="component">Orchestrator core</td>
-            <td class="shape"><span class="tag oss">OSS</span> <span class="tag config">Config</span></td>
-            <td class="choice">Anthropic Agent SDK (TS) behind LLMClient abstraction</td>
-            <td class="why">T1 · T15. Anthropic SDK is the default implementation; LLMClient interface lets us swap providers. Per-task model assignment in <code>models.config.ts</code> (T16).</td>
+            <td class="component">Agent runtime</td>
+            <td class="shape"><span class="tag saas">Foundry</span></td>
+            <td class="choice">Azure AI Foundry Agent Service (managed, AU East)</td>
+            <td class="why">D1 (updates T1). Managed hosted agent runtime — threads, tool-calling, grounding. Configured per turn by the Pattern Router. The Anthropic Agent SDK pattern informs the in-Foundry agent config; we no longer host the runtime ourselves.</td>
           </tr>
           <tr>
-            <td class="component">Pattern classifier</td>
-            <td class="shape"><span class="tag config">Config</span> <span class="tag saas">SaaS</span></td>
-            <td class="choice">Single LLM call · Haiku-tier · returns typed JSON</td>
-            <td class="why">PR2. <code>{pattern, topic, purpose, risk}</code>. Routes the turn. Caches behind the system prompt prefix.</td>
+            <td class="component">Per-task model selection</td>
+            <td class="shape"><span class="tag saas">Foundry</span> <span class="tag config">Config</span></td>
+            <td class="choice">Azure Model Router (Cost / Quality / Balanced) + thin per-pattern config</td>
+            <td class="why">D4 (realises T2 · T16). GA for core managed models. Models stay configurable — selection is config, not code; no model name lives in code. A thin per-pattern config layer above Model Router keeps the choice explicit and auditable. GPT-family in-region at launch (D1); confirm the in-region model retirement successor (3 Jun 2026) before fixing a default.</td>
+          </tr>
+          <tr>
+            <td class="component">Pattern classifier <span class="navy-strong">(we build)</span></td>
+            <td class="shape"><span class="tag oss">Build</span> <span class="tag config">Config</span></td>
+            <td class="choice">Single model call in the router · fast low-cost tier · typed JSON</td>
+            <td class="why">PR2. <code>{pattern, topic, purpose, risk}</code>. Runs in the router <em>before</em> Foundry — this is the classify-before-retrieval tier that fixes Charlie's purpose-blindness, and it has no managed equivalent (Model Router routes at the model level only). Caches behind the system prompt prefix.</td>
           </tr>
           <tr>
             <td class="component">Four skill prompts (launch)</td>
@@ -567,46 +631,52 @@
             <td class="why">PR3 · PR5. Inform-and-Act · Status-Check · Decide · Express. YAML frontmatter + body. Bundled into container image; git-versioned (PR6). Anthropic Skills format.</td>
           </tr>
           <tr>
-            <td class="component">Risk / distress classifier</td>
-            <td class="shape"><span class="tag config">Config</span> <span class="tag saas">SaaS</span></td>
-            <td class="choice">Dedicated LLM call OR fine-tuned model · output is severity + signal type</td>
-            <td class="why">R4 · SEC10. Express pattern routing. Output drives distress hold (A7) and Review Queue (T11).</td>
+            <td class="component">Risk / distress classifier <span class="navy-strong">(we build)</span></td>
+            <td class="shape"><span class="tag oss">Build</span> <span class="tag azure">Azure</span></td>
+            <td class="choice">Router-side classifier · severity + signal type · first pass seeded by Azure Content Safety</td>
+            <td class="why">R4 · SEC10 · D3. Express pattern routing. Content Safety (managed, GA) supplies first-pass self-harm severity; the held state, two-tier Review Queue (T11) and in-channel handoff stay ours — Content Safety classifies severity but does not run the duty-of-care flow. Output drives distress hold (A7).</td>
           </tr>
           <tr>
-            <td class="component">Retrieval pipeline · Docling</td>
-            <td class="shape"><span class="tag oss">OSS</span></td>
-            <td class="choice">IBM Docling library (Python ingestion job) OR pdfjs/mammoth in Node</td>
-            <td class="why">T7. Parses LTU policy PDFs, Word, HTML into chunks preserving semantic structure. Ingestion job runs as a Container App job on a schedule.</td>
+            <td class="component">Knowledge retrieval</td>
+            <td class="shape"><span class="tag azure">Azure</span></td>
+            <td class="choice">Azure AI Search (managed) · vector + hybrid + semantic ranking</td>
+            <td class="why">D2 (supersedes T4 · T6 · T7). GA in AU East. Replaces the self-hosted Docling + LlamaIndex + pgvector + ParadeDB BM25 + BGE reranker stack — the single biggest duplication cut. Surfaced to the Foundry agent as its grounding source. Self-host retained only against a measured retrieval-quality gap.</td>
           </tr>
           <tr>
-            <td class="component">Retrieval pipeline · LlamaIndex</td>
-            <td class="shape"><span class="tag oss">OSS</span></td>
-            <td class="choice">LlamaIndex.TS for ingestion orchestration + retrieval</td>
-            <td class="why">T7. Chunks → embeddings → Postgres+pgvector. At query time: hybrid retrieval (BM25 via ParadeDB + dense vector + rerank). Provider-neutral.</td>
-          </tr>
-          <tr>
-            <td class="component">Retrieval pipeline · Reranker</td>
-            <td class="shape"><span class="tag oss">OSS</span></td>
-            <td class="choice">BGE-reranker-v2.5 (FlagEmbedding) · cross-encoder</td>
-            <td class="why">T6. Self-hosted as a sidecar container (small inference workload) OR run as a serverless model endpoint in Azure Machine Learning. No API calls.</td>
+            <td class="component">Knowledge ingestion</td>
+            <td class="shape"><span class="tag oss">Build</span> <span class="tag azure">Azure</span></td>
+            <td class="choice">Container App jobs · crawl → parse → normalize → index into AI Search</td>
+            <td class="why">K1 · K2. Scheduled jobs pull LTU sources (website / Handbook, RightNow FAQ, ServiceNow KB, MyLaTrobe) into Blob, then index into Azure AI Search. Foundry IQ (preview) is held as a &ldquo;later&rdquo; agentic-retrieval enhancement over the same index (D6).</td>
           </tr>
           <tr>
             <td class="component">Safety subsystem</td>
             <td class="shape"><span class="tag config">Config</span></td>
             <td class="choice">Two-tier review queue + budget enforcer + DLP filter</td>
-            <td class="why">T11 · A7 · SEC5 · SEC8 · SEC9. Auto-allowed vs requires-permission gating. Per-student token budgets enforced at orchestrator + gateway. Output DLP filter strips cross-student PII before send. Memory write sanitisation.</td>
+            <td class="why">T11 · A7 · SEC5 · SEC8 · SEC9. Auto-allowed vs requires-permission gating. Per-student token budgets enforced at the router + gateway. Output DLP filter strips cross-student PII before send. Memory write sanitisation.</td>
           </tr>
           <tr>
             <td class="component">Prompt injection defence</td>
-            <td class="shape"><span class="tag config">Config</span></td>
-            <td class="choice">Canary tokens + content validation + provenance</td>
-            <td class="why">SEC6 · SEC7. Direct: structural separators in system prompt. Indirect: validate retrieved Knowledge content before injection.</td>
+            <td class="shape"><span class="tag saas">Foundry</span> <span class="tag config">Config</span></td>
+            <td class="choice">Azure Prompt Shields (managed) · direct jailbreak + indirect / XPIA</td>
+            <td class="why">D3 (supersedes SEC6 · SEC7 as the load-bearing control). GA. Covers both threat vectors — direct jailbreak and indirect / cross-prompt injection from retrieved content. Structural separators in the system prompt retained as defence-in-depth only.</td>
           </tr>
           <tr>
             <td class="component">Audit + tagging</td>
             <td class="shape"><span class="tag config">Config</span></td>
             <td class="choice">Per-turn span emitter · tags pattern · topic · purpose · outcome</td>
             <td class="why">A8 · SEC4. Writes to App Insights (hot) and Postgres audit table (warm) and Blob archive (cold).</td>
+          </tr>
+          <tr>
+            <td class="component">Admin Console <span class="navy-strong">(we build)</span></td>
+            <td class="shape"><span class="tag oss">Build</span></td>
+            <td class="choice">Management UI · knowledge · skills · prompts · approvals · audit</td>
+            <td class="why">Management plane for the people who run the assistant: curate knowledge sources, edit and promote skill prompts, action the two-tier review-queue approvals, and read the audit trail. No managed equivalent. (Merged architecture — see <a href="managed-foundry-alignment-review.html">alignment review</a>.)</td>
+          </tr>
+          <tr>
+            <td class="component">Tool Registry UI <span class="navy-strong">(we build)</span></td>
+            <td class="shape"><span class="tag oss">Build</span></td>
+            <td class="choice">Tool catalogue · schemas · permissions · test console</td>
+            <td class="why">Registers each MCP tool with its schema and permission gating (auto-allowed vs requires-permission), plus a test console. Borrowed from the Foundry proposal; keeps tool definitions auditable and independently testable.</td>
           </tr>
         </tbody>
       </table>
@@ -622,9 +692,9 @@
           <tr><td class="component">Identity</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Microsoft Entra ID</td><td class="why">student_id, roles, session tokens. Pinned at auth boundary (SEC1 · T8 · A5).</td></tr>
           <tr><td class="component">Records (SIS · payments · RightNow)</td><td class="shape"><span class="tag ltu">LTU</span></td><td class="choice">LTU systems of record · read API + 5 Action APIs</td><td class="why">R2 · L1 · L2. Read for Status-Check + eligibility. Write via the 5 Action APIs (defer-SSAF, withdraw, transfer, change-load, special-consideration). Access via Private Link if available.</td></tr>
           <tr><td class="component">Action APIs (the 5 flows)</td><td class="shape"><span class="tag ltu">LTU</span></td><td class="choice">LTU-owned transactional APIs · typed JSON schemas</td><td class="why">L1 · R3 · PR3 · SEC9. Idempotency keys; explicit confirmation gates; audit log on every invocation.</td></tr>
-          <tr><td class="component">Per-student budgets</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Azure Cache for Redis · counter keys per student</td><td class="why">T16 · A7 · INF6. Decremented at the orchestrator + APIM. Replenished on schedule. Distress hold flag also in Redis.</td></tr>
+          <tr><td class="component">Per-student budgets</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Azure Cache for Redis · counter keys per student</td><td class="why">T16 · A7 · INF6. Decremented at the router + APIM. Replenished on schedule. Distress hold flag also in Redis.</td></tr>
           <tr><td class="component">Audit log</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">PostgreSQL append-only table · daily snapshot to Blob Archive</td><td class="why">A8 · SEC4. Tagged with student_id · pattern · topic · purpose · outcome. Immutable. Retained per LTU records policy.</td></tr>
-          <tr><td class="component">Risk classifier output</td><td class="shape"><span class="tag oss">OSS</span></td><td class="choice">In-memory per turn · persisted to audit log + Redis (for distress hold)</td><td class="why">R4 · SEC10. Severity + signal_type per turn. Drives Express routing.</td></tr>
+          <tr><td class="component">Risk classifier output</td><td class="shape"><span class="tag oss">Build</span></td><td class="choice">In-memory per turn · persisted to audit log + Redis (for distress hold)</td><td class="why">R4 · SEC10. Severity + signal_type per turn. Drives Express routing.</td></tr>
         </tbody>
       </table>
 
@@ -632,11 +702,11 @@
       <table>
         <thead><tr><th>Repository</th><th>Shape</th><th>Lives in</th><th>Notes</th></tr></thead>
         <tbody>
-          <tr><td class="component">Knowledge base · FAQs</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Blob Storage (source) + Postgres+pgvector (index)</td><td class="why">K1 · INF5 · INF7. ASK La Trobe FAQ pages indexed periodically. Hybrid retrieval: BM25 (ParadeDB) + vector (pgvector) + BGE rerank.</td></tr>
-          <tr><td class="component">Knowledge base · students portal</td><td class="shape"><span class="tag azure">Azure</span> <span class="tag ltu">LTU</span></td><td class="choice">Crawled from latrobe.edu.au/students → Blob → indexed</td><td class="why">K1. Scheduled crawler (Container App job) pulls portal content; ingested via Docling + LlamaIndex.</td></tr>
+          <tr><td class="component">Knowledge base · FAQs</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Blob Storage (source) + Azure AI Search (index)</td><td class="why">K1 · INF7 · D2. ASK La Trobe FAQ pages indexed periodically into Azure AI Search (managed vector + hybrid + semantic ranking), replacing the self-hosted pgvector / ParadeDB / BGE stack.</td></tr>
+          <tr><td class="component">Knowledge base · students portal</td><td class="shape"><span class="tag azure">Azure</span> <span class="tag ltu">LTU</span></td><td class="choice">Crawled from latrobe.edu.au/students → Blob → indexed</td><td class="why">K1. Scheduled crawler (Container App job) pulls portal content into Blob, then indexes it into Azure AI Search (D2).</td></tr>
           <tr><td class="component">Knowledge base · Handbook</td><td class="shape"><span class="tag azure">Azure</span> <span class="tag ltu">LTU</span></td><td class="choice">handbook.latrobe.edu.au → Blob → indexed</td><td class="why">K2. Termly crawl cadence (Handbook updates termly).</td></tr>
-          <tr><td class="component">MEMORY (agent-curated facts)</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Postgres table · markdown-style notes per student · ~800 token cap</td><td class="why">A6 · B6 · SEC5. Bounded by design. Sanitised before write (paraphrase distress, redact third-party PII).</td></tr>
-          <tr><td class="component">Conversation history / session log</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Postgres + FTS5-equivalent (or ParadeDB BM25)</td><td class="why">A6. Searchable past chats. Retrieved on demand by relevance / recency. Sanitised on retrieval (SEC5).</td></tr>
+          <tr><td class="component">MEMORY (agent-curated facts)</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Postgres table · markdown-style notes per student · ~800 token cap</td><td class="why">A6 · B6 · SEC5 · D5. Bounded by design. Sanitised before write (paraphrase distress, redact third-party PII). <span class="navy-strong">We own this as the system of record</span> — sanitisation, bounding, RLS, residency and the analytics log depend on it; Foundry managed long-term memory (preview) is declined as system of record. Managed threads may hold in-session state.</td></tr>
+          <tr><td class="component">Conversation history / session log</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Postgres · full-text search + pgvector (per-student, we own)</td><td class="why">A6. Searchable past chats. Retrieved on demand by relevance / recency. Sanitised on retrieval (SEC5). Stays in our governed tier, not the managed corpus index.</td></tr>
           <tr><td class="component">Skill documents</td><td class="shape"><span class="tag config">Config</span></td><td class="choice"><code>src/data/skills/&lt;pattern&gt;/prompts.md</code> · git-versioned</td><td class="why">PR3 · PR5 · PR6. YAML + markdown per pattern. Bundled into container image at build time. Hot-reloadable if symlinked to <code>.claude/skills/</code> during dev.</td></tr>
         </tbody>
       </table>
@@ -656,11 +726,11 @@
       <table>
         <thead><tr><th>Component</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td class="component">Primary database</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">PostgreSQL Flexible Server · AU East · 2–4 vCore + pgvector + ParadeDB</td><td class="why">T5 · T10 · INF5. Hosts USER profile, MEMORY, session log, audit table, vector index, BM25 index. RLS enforced.</td></tr>
+          <tr><td class="component">Primary database</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">PostgreSQL Flexible Server · AU East · 2–4 vCore + pgvector</td><td class="why">T10 · INF5 · D5. Hosts USER profile, MEMORY, session log and the audit table; pgvector retained for per-student memory / history similarity. Corpus retrieval moves to managed Azure AI Search (D2). RLS enforced.</td></tr>
           <tr><td class="component">Hot cache</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Cache for Redis · Premium · ~6 GB</td><td class="why">INF6. Hot per-student session state, token budget counters, distress hold flags, rate-limit counters.</td></tr>
           <tr><td class="component">Document + archive storage</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Blob Storage · hot+cool+archive tiers · geo-redundant</td><td class="why">INF7. Knowledge corpus source files (PDF, HTML, Word). Cold audit log archive.</td></tr>
           <tr><td class="component">Secrets</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Key Vault</td><td class="why">SEC11 · INF10. All API keys, connection strings, certificates. Managed-identity access only.</td></tr>
-          <tr><td class="component">Alternative search index</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Azure AI Search · only if pgvector + ParadeDB hits scale friction</td><td class="why">Available if hybrid retrieval over corpus needs more than pgvector can provide. Same AU East region. Not the default — pgvector is simpler and cheaper.</td></tr>
+          <tr><td class="component">Knowledge search index</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Azure AI Search · the default retrieval layer (D2)</td><td class="why">GA in AU East. Managed vector + hybrid + semantic ranking over the knowledge corpus. This is now the default — it retires the self-hosted pipeline. Self-hosted pgvector retrieval is kept only as a fallback against a measured retrieval-quality gap.</td></tr>
         </tbody>
       </table>
 
@@ -671,7 +741,7 @@
         <tbody>
           <tr><td class="component">Global edge</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Front Door · Premium · CDN+WAF+DDoS</td><td class="why">SEC13 · INF8. Single edge for all public traffic.</td></tr>
           <tr><td class="component">API gateway</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">API Management · auth · rate-limit · versioning</td><td class="why">SEC1 · SEC13 · INF9.</td></tr>
-          <tr><td class="component">Inter-service traffic</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Private Endpoints + NSGs · VNet integration for all data tier + Key Vault + ACR</td><td class="why">SEC11 · INF10.</td></tr>
+          <tr><td class="component">Inter-service traffic</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Private Endpoints + NSGs · VNet integration for the data tier, Key Vault, ACR, Azure AI Search and the Foundry runtime</td><td class="why">SEC11 · INF10. Managed AI services (Foundry, AI Search) reached over private networking; no public model-API egress.</td></tr>
         </tbody>
       </table>
 
@@ -687,26 +757,26 @@
 
       <!-- ====================================================== -->
       <h2 id="mcp">8. MCP tool servers</h2>
-      <p class="section-lead">Three MCP (Model Context Protocol) servers run as Container Apps services within the same environment as the orchestrator. They are internal only — no public endpoint. The orchestrator is the MCP client; tool calls from the six pattern prompts route through these servers before reaching external LTU systems. This makes the tool implementations independently deployable, separately scalable, and reusable across any future agent without modifying orchestrator code. CLI-binary tools (subprocess from the orchestrator) were considered and rejected for the reasons recorded in T19 — connection lifecycle against SAP PO and Postgres at census-load spikes, and the loss of a per-tool auth boundary independent of the orchestrator.</p>
+      <p class="section-lead">Three MCP (Model Context Protocol) servers run as Container Apps services within the same environment as the Pattern Router. They are internal only — no public endpoint. The router/gateway is the MCP client; tool calls the Foundry agent requests are executed through these servers before reaching external LTU systems. This makes the tool implementations independently deployable, separately scalable, and reusable across any future agent without modifying router code. They stay ours under the build/buy split (D1) — SAP PO routing, idempotency and audit have no managed equivalent. CLI-binary tools (subprocess) were considered and rejected for the reasons recorded in T19 — connection lifecycle against SAP PO and Postgres at census-load spikes, and the loss of a per-tool auth boundary independent of the router.</p>
 
       <table>
         <thead><tr><th>Server</th><th>Shape</th><th>Tools exposed</th><th>Downstream</th><th>Why</th></tr></thead>
         <tbody>
           <tr>
             <td class="component">ltu-records-mcp</td>
-            <td class="shape"><span class="tag oss">OSS</span> <span class="tag azure">Azure</span></td>
+            <td class="shape"><span class="tag oss">Build</span> <span class="tag azure">Azure</span></td>
             <td class="choice"><code>records_lookup</code> &middot; <code>check_eligibility</code></td>
             <td class="why">SAP PO &rarr; SIS read path. Status-Check and Decide eligibility queries.</td>
           </tr>
           <tr>
             <td class="component">ltu-actions-mcp</td>
-            <td class="shape"><span class="tag oss">OSS</span> <span class="tag azure">Azure</span></td>
+            <td class="shape"><span class="tag oss">Build</span> <span class="tag azure">Azure</span></td>
             <td class="choice"><code>lodge_action</code> (defer &middot; withdraw &middot; transfer &middot; change-load &middot; special-consid&rsquo;n)</td>
             <td class="why">SAP PO &rarr; SIS write path. Decide pattern Action API calls.</td>
           </tr>
           <tr>
             <td class="component">ltu-wellbeing-mcp</td>
-            <td class="shape"><span class="tag oss">OSS</span> <span class="tag azure">Azure</span></td>
+            <td class="shape"><span class="tag oss">Build</span> <span class="tag azure">Azure</span></td>
             <td class="choice"><code>request_advisor_handoff</code> &middot; <code>log_distress_signal</code></td>
             <td class="why">Contact-centre platform (advisor routing) + Redis hold state. Express pattern escalation path.</td>
           </tr>
@@ -714,35 +784,36 @@
       </table>
 
       <div class="callout green">
-        <strong>retrieve_knowledge is NOT a separate MCP server.</strong>
-        The retrieval pipeline (Docling &middot; LlamaIndex &middot; BGE reranker &middot; Hybrid BM25+vector) runs <em>inside</em> the orchestrator Container App. <code>retrieve_knowledge</code> is a direct in-process call to the pipeline &mdash; no HTTP hop, no extra service to manage.
+        <strong>retrieve_knowledge is NOT one of our MCP servers.</strong>
+        Knowledge grounding is managed Azure AI Search (D2), surfaced to the Foundry agent as its retrieval source &mdash; not a self-hosted pipeline we run. Foundry IQ (preview) is the &ldquo;later&rdquo; agentic-retrieval layer over the same index. Our three MCP servers cover only the LTU system-of-record calls (records, actions, wellbeing).
       </div>
 
       <div class="callout amber">
-        <strong>Phase 2 deferral: ltu-outbound-mcp.</strong>
-        Nudge and Check-in patterns use <code>send_outbound_message</code> (email &middot; LMS &middot; SMS). A fourth MCP server (<code>ltu-outbound-mcp</code>) will wrap this when proactive patterns ship. Not needed for the reactive Phase 1 baseline.
+        <strong>Follow-up release: ltu-outbound-mcp.</strong>
+        Nudge and Check-in patterns use <code>send_outbound_message</code> (email &middot; LMS &middot; SMS). A fourth MCP server (<code>ltu-outbound-mcp</code>) will wrap this when the proactive patterns ship. Not needed for the reactive launch baseline.
       </div>
 
       <!-- ====================================================== -->
       <h2 id="external">9. External integrations</h2>
-      <p class="section-lead">Outbound traffic from the orchestrator. Not Azure resources; these are external APIs and LTU middleware we depend on. The LLMClient abstraction (T15) decouples the LLM provider so it can be swapped without rewiring the rest of the system. SIS/Records Action API calls route through LTU's SAP PO middleware layer before reaching the back end.</p>
+      <p class="section-lead">Outbound traffic from the Pattern Router. <strong>Model calls are no longer an external integration</strong> — under D1 they run inside the managed Foundry catalogue in-region, reached over private networking. What remains outbound is LTU middleware: SIS/Records and the five Action APIs route through LTU's SAP PO layer before reaching the back end.</p>
 
       <table>
         <thead><tr><th>Integration</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td class="component">LLM provider (model API)</td><td class="shape"><span class="tag saas">SaaS</span></td><td class="choice">Anthropic Claude (Haiku · Sonnet · Opus) — primary. Routed via Bedrock AU or Azure OpenAI AU for residency.</td><td class="why">T1 · T2 · T15 · T17. Provider-agnostic via LLMClient. Australian region for data residency. Per-task model assignment in <code>models.config.ts</code> (T16).</td></tr>
-          <tr><td class="component">Alternative LLM providers</td><td class="shape"><span class="tag saas">SaaS</span> <span class="tag config">Config</span></td><td class="choice">Azure OpenAI · AWS Bedrock · Google Vertex · Vercel AI SDK · self-hosted (Ollama, vLLM)</td><td class="why">T15. Swappable via LLMClient implementation. Same orchestrator code.</td></tr>
-          <tr><td class="component">SAP PO · LTU middleware</td><td class="shape"><span class="tag ltu">LTU</span></td><td class="choice">SAP Process Orchestrator — LTU legacy integration bus</td><td class="why">LTU legacy pattern. The five Action APIs (defer · withdraw · transfer · change-load · special-consid'n) route via SAP PO event/message bus before reaching the SIS back end. Orchestrator calls SAP PO endpoints; SAP PO handles SIS translation, retries, and audit trail.</td></tr>
+          <tr><td class="component">Models (no external egress)</td><td class="shape"><span class="tag saas">Foundry</span></td><td class="choice">Foundry catalogue models in Australia East · selected per task via Model Router; no model named in code</td><td class="why">D1 · D4 · T16 · T17. Calls stay inside the managed Foundry runtime in-region — residency is met by the platform, not by routing out to a provider API. GPT-family at launch (Claude is not in AU East on Foundry).</td></tr>
+          <tr><td class="component">Out-of-region / cross-cloud models</td><td class="shape"><span class="tag config">Config</span></td><td class="choice">Sovereign side path (e.g. a Bedrock Sydney endpoint) <em>outside</em> the managed runtime</td><td class="why">D1 (re-scopes T15). Not at launch. Provider-agnosticism is narrowed from cross-cloud to within the in-region Foundry catalogue. A model returns to the configurable set if/when it reaches AU East, else only as this side path — a deliberate lock-in / managed-simplicity trade-off on record.</td></tr>
+          <tr><td class="component">SAP PO · LTU middleware</td><td class="shape"><span class="tag ltu">LTU</span></td><td class="choice">SAP Process Orchestrator — LTU legacy integration bus</td><td class="why">T18. The five Action APIs (defer · withdraw · transfer · change-load · special-consid'n) route via the SAP PO event/message bus before reaching the SIS back end. The router calls SAP PO endpoints via <code>ltu-actions-mcp</code>; SAP PO handles SIS translation, retries, and audit trail.</td></tr>
           <tr><td class="component">LTU SIS · Records · payments</td><td class="shape"><span class="tag ltu">LTU</span></td><td class="choice">LTU-owned APIs · accessed via SAP PO middleware · Private Link if available</td><td class="why">R2 · L2. Read for Status-Check + eligibility. Egress logged centrally.</td></tr>
         </tbody>
       </table>
 
       <div class="callout amber">
         <strong>Australian residency.</strong>
-        T17 — every external integration must be available in an Australian
-        region or route through sovereign infrastructure (Azure AU East, AWS
-        Sydney via Bedrock, LTU on-prem). Direct US-region API calls are not
-        acceptable for student data flows.
+        T17 — student data stays in-region. Models run inside the Foundry
+        catalogue in Australia East (D1); LTU systems are reached via SAP PO /
+        Private Link. Direct US-region model-API calls are not acceptable for
+        student data flows — an out-of-region model would only ever be a
+        sovereign side path (e.g. Bedrock Sydney) outside the managed runtime.
       </div>
 
       <!-- ====================================================== -->
@@ -753,7 +824,7 @@
         <thead><tr><th>Component</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
           <tr><td class="component">Held conversation state</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Redis state · per-student handoff flag · advisor-claim ID</td><td class="why">A3 · A7. While held, composer is locked, distress hold engaged.</td></tr>
-          <tr><td class="component">Advisor routing</td><td class="shape"><span class="tag ltu">LTU</span></td><td class="choice">LTU's contact-centre platform · webhook from orchestrator (specific platform TBD with LTU IT)</td><td class="why">Pages the wellbeing advisor team; the held state shows "Connecting..." until claimed.</td></tr>
+          <tr><td class="component">Advisor routing</td><td class="shape"><span class="tag ltu">LTU</span></td><td class="choice">LTU's contact-centre platform · webhook from the router (specific platform TBD with LTU IT)</td><td class="why">Pages the wellbeing advisor team; the held state shows "Connecting..." until claimed.</td></tr>
           <tr><td class="component">Advisor join surface</td><td class="shape"><span class="tag azure">Azure</span> <span class="tag ltu">LTU</span></td><td class="choice">Same chat surface · advisor takes over the conversation thread with full prior context</td><td class="why">Continuity is the point. Student never re-explains.</td></tr>
           <tr><td class="component">Crisis pathway</td><td class="shape"><span class="tag config">Config</span></td><td class="choice">Lifeline (13 11 14) · LTU Counselling · Crisis Support · all surfaced as soft options · not phone-redirects</td><td class="why">A3. Listed alongside in-channel handoff; never forced.</td></tr>
           <tr><td class="component">Distress signal log (sensitive)</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Postgres table · access restricted · not in population analytics</td><td class="why">SEC4. Audit trail for safeguarding obligations.</td></tr>
@@ -766,11 +837,22 @@
         <thead><tr><th>Component</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
           <tr><td class="component">Telemetry backend</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Application Insights</td><td class="why">INF11. Hot trace / metric / log.</td></tr>
-          <tr><td class="component">Tracing SDK</td><td class="shape"><span class="tag oss">OSS</span></td><td class="choice">OpenTelemetry SDK in TS</td><td class="why">INF11 · T15-friendly. Per-turn span attributes: pattern · topic · purpose · hashed student_id.</td></tr>
+          <tr><td class="component">Tracing SDK</td><td class="shape"><span class="tag oss">Build</span></td><td class="choice">OpenTelemetry SDK in TS · plus Foundry eval / tracing</td><td class="why">INF11. Per-turn span attributes: pattern · topic · purpose · hashed student_id. Foundry's built-in eval and tracing complement App Insights on the managed runtime.</td></tr>
           <tr><td class="component">Log analytics</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Log Analytics workspace + KQL alerts</td><td class="why">INF12. SLO-based alerts: error rate, p95 latency, cost overrun, DLP-redaction events.</td></tr>
           <tr><td class="component">Cost monitoring</td><td class="shape"><span class="tag azure">Azure</span></td><td class="choice">Cost Management · per-student-tagged consumption</td><td class="why">A7 · T16. Cohort-level cost dashboards without identifying individuals.</td></tr>
         </tbody>
       </table>
+
+      <div class="callout">
+        <strong>Metrics &amp; dashboards.</strong> The 33 metrics produced
+        from this telemetry stack &mdash; Watson-parity (M1&ndash;M8),
+        per-pattern SLOs (M9&ndash;M16), outcome &amp; behaviour signals
+        (M17&ndash;M24), feedback capture (M25&ndash;M27), cohort slices
+        (M28&ndash;M30) and continuous quality (M31&ndash;M33) &mdash; are
+        defined in <a href="metrics-catalogue.html">metrics-catalogue.html</a>.
+        The launch-day surfacing of those metrics is mocked in
+        <a href="day-1-dashboard.html">day-1-dashboard.html</a>.
+      </div>
 
       <!-- ====================================================== -->
       <h2 id="resilience">12. Resilience &amp; DR</h2>
@@ -785,7 +867,7 @@
         <div class="stat">
           <div class="label">RPO target</div>
           <div class="value">15 min</div>
-          <div class="note">Phase 1 best-effort via Postgres PITR + geo-redundant backup.</div>
+          <div class="note">Best-effort at launch via Postgres PITR + geo-redundant backup.</div>
         </div>
         <div class="stat">
           <div class="label">RTO target</div>
@@ -803,6 +885,19 @@
         <li><strong>Audit log</strong> — append-only; daily snapshot to Blob Archive (SEC4).</li>
       </ul>
 
+      <div class="callout amber">
+        <strong>Capacity, not just recovery — the Foundry PTU caveat.</strong>
+        On the managed path the model is a reserved-capacity dependency, not an
+        elastic one. Provisioned Throughput (PTU) is a <em>cap</em>, not a
+        guarantee — Microsoft warns a region/model can &ldquo;sell out&rdquo;.
+        The availability risk concentrates on census/deadline days, exactly when
+        every student logs in at once. <strong>Open action:</strong> size and
+        reserve AU East PTU ahead of census rather than assuming on-demand
+        availability; this is currently flagged but not yet sized. Pairs with
+        the open action to confirm the in-region model retirement successor
+        (3 Jun 2026) before fixing a default (D1).
+      </div>
+
       <!-- ====================================================== -->
       <h2 id="cicd">13. CI/CD + IaC</h2>
       <table>
@@ -817,38 +912,38 @@
 
       <!-- ====================================================== -->
       <h2 id="cost">14. Cost shape</h2>
-      <p class="section-lead">Monthly cost for the Phase 1 production deployment at ~30k students. Big-ticket items: LLM API calls (capped by per-student budgets) and the primary database. Compute scales to zero during quiet periods. <strong>LLM costs are the most variable line — and the most controllable.</strong> The provider is configurable via <code>models.config.ts</code> (T15 · T16): Anthropic Claude, OpenAI GPT-4o, Google Gemini, GLM (Zhipu), Mistral, self-hosted Ollama/vLLM — any provider that speaks the LLMClient interface can be slotted in without touching orchestrator code. Estimates below use Anthropic as the baseline; switching providers or models changes this line significantly.</p>
+      <p class="section-lead">Indicative monthly cost for the production deployment at ~30k students. Big-ticket items: Foundry model consumption (capped by per-student budgets) and the primary database. The router compute scales to zero during quiet periods; the <em>model</em> does not — under D1 it is a reserved-capacity (PTU) or pay-as-you-go line on the managed runtime. <strong>Model cost is the most variable line — and the most controllable.</strong> Models are configurable within the Foundry catalogue via Model Router (D1 · D4 · T16); no model is named in code. Estimates assume a fast low-cost model for classification and a stronger model for content as the baseline; the configured model and PTU reservation change this line significantly. The managed shift retires three self-hosted lines (BGE reranker, the bespoke retrieval pipeline, self-host model serving) and adds Azure AI Search + the Foundry runtime.</p>
 
       <table>
         <thead><tr><th>Component</th><th>Monthly (est.)</th><th>Notes</th></tr></thead>
         <tbody>
           <tr><td class="component">Front Door · Premium</td><td>~$300–500</td><td>Per environment. WAF + Bot Manager included.</td></tr>
           <tr><td class="component">API Management</td><td>~$1,000</td><td>Standard tier. Developer tier is cheaper but no SLA.</td></tr>
-          <tr><td class="component">Container Apps · Orchestrator</td><td>~$200–500</td><td>Scales with traffic. Scale-to-zero quiet.</td></tr>
+          <tr><td class="component">Container Apps · router + MCP servers</td><td>~$200–500</td><td>Scales with traffic. Scale-to-zero quiet.</td></tr>
           <tr><td class="component">Static Web Apps</td><td>~$10</td><td>Standard covers institutional scale.</td></tr>
           <tr><td class="component">Postgres Flexible · 2–4 vCore</td><td>~$300–600</td><td>Geo-redundant backup. Autoscale storage.</td></tr>
           <tr><td class="component">Cache for Redis · Premium</td><td>~$250</td><td>6 GB · zone-redundant.</td></tr>
           <tr><td class="component">Blob Storage</td><td>~$50</td><td>Mostly cold/archive tier.</td></tr>
           <tr><td class="component">App Insights + Log Analytics</td><td>~$200–400</td><td>Variable on log volume.</td></tr>
           <tr><td class="component">Key Vault</td><td>~$5</td><td>Per-operation pricing.</td></tr>
-          <tr><td class="component">BGE reranker hosting</td><td>~$80–150</td><td>Sidecar container OR AzureML serverless endpoint.</td></tr>
-          <tr><td class="component">Knowledge crawler</td><td>~$20</td><td>Periodic ingestion job.</td></tr>
-          <tr><td class="component">LLM API calls <span class="tag config">Configurable</span></td><td><strong>~$3,000–8,000</strong></td><td><strong>Variable — and provider-dependent.</strong> Baseline uses Anthropic Claude (Haiku for classifier, Sonnet for content) via Bedrock AU. Swapping to OpenAI GPT-4o mini / GPT-4o, Google Gemini 2.5, GLM-4, Mistral, or self-hosted (Ollama · vLLM) changes this line materially. Per-student budgets cap spend. ~80% prompt-cache hit per session reduces cost further.</td></tr>
+          <tr><td class="component">Azure AI Search <span class="tag azure">Managed · D2</span></td><td>~$250–1,000</td><td>Replaces self-hosted retrieval + BGE reranker hosting. Tier depends on corpus size / replica + partition count.</td></tr>
+          <tr><td class="component">Knowledge ingestion jobs</td><td>~$20–50</td><td>Scheduled crawl + index into AI Search.</td></tr>
+          <tr><td class="component">Foundry model consumption <span class="tag saas">Foundry · D1</span></td><td><strong>~$3,000–8,000</strong> + PTU</td><td><strong>Variable — model- and PTU-dependent.</strong> Catalogue models in AU East, selected per task via Model Router; no model named in code. Per-student budgets cap spend; ~80% prompt-cache hit per session reduces it further. <strong>Reserved PTU for census peaks is an additional commitment to size.</strong></td></tr>
           <tr><td class="component">Advisor routing · wellbeing handoff <span class="tag ltu">LTU</span></td><td>existing</td><td>LTU pays for advisor capacity already.</td></tr>
-          <tr><td class="component"><strong>Approx Phase-1 total</strong></td><td><strong>~$5,400–11,500</strong></td><td>Per active month.</td></tr>
+          <tr><td class="component"><strong>Approx launch total</strong></td><td><strong>~$5,600–12,400</strong> + PTU</td><td>Per active month, excluding any reserved PTU commitment.</td></tr>
         </tbody>
       </table>
 
       <div class="callout amber">
         <strong>Per-student cost.</strong>
-        Roughly <strong>$0.18–$0.40 per active student per month</strong> at
-        full Phase-1 utilisation. Major lever: prompt caching (~80% per
-        session) + per-student token budgets.
+        Roughly <strong>$0.19–$0.42 per active student per month</strong> at
+        full utilisation, before any reserved-PTU commitment. Major lever:
+        prompt caching (~80% per session) + per-student token budgets.
       </div>
 
       <div class="callout green">
-        <strong>LLM provider is fully configurable — not locked in.</strong>
-        The <code>LLMClient</code> abstraction (T15) means the model provider is a configuration choice, not a code dependency. Supported out of the box: <strong>Anthropic Claude</strong> (Haiku · Sonnet · Opus) · <strong>OpenAI</strong> (GPT-4o · GPT-4o mini) · <strong>Azure OpenAI</strong> (AU East — preferred for residency) · <strong>Google Gemini</strong> (2.5 Pro · Flash) · <strong>GLM</strong> (Zhipu GLM-4) · <strong>Mistral</strong> · <strong>AWS Bedrock</strong> (Sydney region) · <strong>self-hosted</strong> (Ollama · vLLM on LTU infra). Each model can be assigned per task in <code>models.config.ts</code> — e.g. a cheap fast model for classification, a stronger model for Decide flows.
+        <strong>Models stay configurable — within the in-region catalogue.</strong>
+        Under D1 the model is a configuration choice, not a code dependency — no model is named anywhere in code. Per-task selection runs through <strong>Azure Model Router</strong> with a thin per-pattern config layer above it (D4), choosing among the <strong>Foundry catalogue models available in Australia East</strong> (GPT-family at launch). Provider-agnosticism is re-scoped, not reversed (T15): portability narrows from cross-cloud to within the in-region catalogue. An out-of-region or cross-cloud model returns to scope only if it reaches AU East, else as a sovereign side path (e.g. Bedrock Sydney) outside the managed runtime.
       </div>
 
       <!-- ====================================================== -->
@@ -857,9 +952,10 @@
         <div>
           <h3>Horizontal (compute)</h3>
           <ul>
-            <li><strong>Orchestrator</strong> — Container Apps autoscale on HTTP request rate. Scale-to-zero at low traffic; max ~10 replicas raisable.</li>
+            <li><strong>Pattern Router</strong> — Container Apps autoscale on HTTP request rate. Scale-to-zero at low traffic; max ~10 replicas raisable.</li>
             <li><strong>Frontend</strong> — Static Web Apps CDN scales globally.</li>
-            <li><strong>BGE reranker</strong> — sidecar can scale with orchestrator; or AzureML serverless absorbs spikes.</li>
+            <li><strong>Retrieval</strong> — Azure AI Search scales as a managed service (replicas + partitions); no self-hosted reranker to scale.</li>
+            <li><strong>Model (the new ceiling)</strong> — on the managed path the scale lever is <strong>Foundry PTU / quota</strong>, not replica count. It is a hard cap that can sell out; reserve AU East PTU ahead of census.</li>
           </ul>
         </div>
         <div>
@@ -874,19 +970,24 @@
 
       <h3>Anticipated load shapes</h3>
       <ul>
-        <li><strong>Steady state</strong> — ~50–200 concurrent students; orchestrator at 1–2 replicas.</li>
-        <li><strong>Census + deadline waves</strong> — 5–10× spike for 2–3 days; orchestrator scales to 5–10 replicas; database vCore up.</li>
+        <li><strong>Steady state</strong> — ~50–200 concurrent students; router at 1–2 replicas.</li>
+        <li><strong>Census + deadline waves</strong> — 5–10× spike for 2–3 days; router scales to 5–10 replicas and database vCore up — <em>but</em> the binding constraint becomes Foundry model PTU/quota, which must be reserved ahead, not autoscaled. Unmodelled, this is the busiest-day failure mode.</li>
         <li><strong>Express-pattern surges</strong> — handoff held states require advisor availability, not infrastructure scaling. Capacity managed by LTU's contact-centre platform / staff scheduling.</li>
       </ul>
 
       <footer class="foot">
         <span>
           <strong>Companion documents.</strong>
-          Decisions log: <code>decisions-and-rationale.html</code> ·
+          Decisions log: <a href="decisions-and-rationale.html">decisions-and-rationale.html</a> ·
+          Build-vs-buy review: <a href="duplication-buy-vs-build-review.html">duplication-buy-vs-build-review.html</a> ·
+          Foundry alignment review: <a href="managed-foundry-alignment-review.html">managed-foundry-alignment-review.html</a> ·
+          SSAF MVP walkthrough: <a href="ssaf-use-case.html">ssaf-use-case.html</a> ·
+          Metrics catalogue: <a href="metrics-catalogue.html">metrics-catalogue.html</a> ·
+          Day-1 dashboard: <a href="day-1-dashboard.html">day-1-dashboard.html</a> ·
           Stakeholder briefing: <code>personalisation-one-pager.pdf</code> ·
           Skills folder: <code>src/data/skills/&lt;pattern&gt;/prompts.md</code>
         </span>
-        <span>La Trobe assistant · infrastructure · Phase 1 · 11 May 2026</span>
+        <span>La Trobe assistant · infrastructure · reflects D1&ndash;D6 · 29 May 2026</span>
       </footer>
     </div>
   </body>
