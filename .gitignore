@@ -22,3 +22,5 @@ prototype/tsconfig.tsbuildinfo
 
 # Handoff packages (built artifacts, not source)
 charlie-vc-handoff.zip
+VC_HANDOFF.md
+VC_RUN_GUIDE.html
