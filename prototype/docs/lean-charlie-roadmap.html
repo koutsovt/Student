@@ -82,7 +82,7 @@
   <div class="grid-2">
     <div class="card">
       <h4>What we ship</h4>
-      <p>The pattern classifier, four reactive patterns, <em>one</em> transactional action of LTU's choosing from the five SAP PO flows, vector retrieval over the corpus, Anthropic Claude as the default, and email-based wellbeing escalation.</p>
+      <p>The pattern classifier, four reactive patterns, <em>one</em> transactional action of LTU's choosing from the five SAP PO flows, vector retrieval over the corpus, a configurable model behind the <code>LLMClient</code> interface (no model fixed in code), and email-based wellbeing escalation.</p>
     </div>
     <div class="card">
       <h4>What we defer (reversibly)</h4>
@@ -118,7 +118,7 @@
         <text x="440" y="234" text-anchor="middle">1 SAP PO action · LTU's pick</text>
         <text x="440" y="252" text-anchor="middle">pgvector dense retrieval</text>
         <text x="440" y="270" text-anchor="middle">USER + session log</text>
-        <text x="440" y="288" text-anchor="middle">Anthropic Claude (default via LLMClient)</text>
+        <text x="440" y="288" text-anchor="middle">Configurable model (via LLMClient)</text>
         <text x="440" y="306" text-anchor="middle">Email escalation · Express</text>
       </g>
 
@@ -128,7 +128,7 @@
         <text x="180" y="238" text-anchor="middle">+ MEMORY slice</text>
         <text x="180" y="256" text-anchor="middle">+ 2nd action</text>
         <text x="700" y="220" text-anchor="middle" font-weight="600">+ token budget</text>
-        <text x="700" y="238" text-anchor="middle">+ alt provider (e.g. Azure OpenAI)</text>
+        <text x="700" y="238" text-anchor="middle">+ alt provider (configurable)</text>
         <text x="700" y="256" text-anchor="middle">+ eval harness</text>
       </g>
 
@@ -161,7 +161,7 @@
     <thead><tr><th>Dial</th><th>MVP setting <span class="pill pill-mvp">launch</span></th><th>Deferred setting <span class="pill pill-later">later</span></th><th>Seam</th></tr></thead>
     <tbody>
       <tr><td>MCP servers</td><td>1 server with <code>records.*</code> · <code>actions.*</code> · <code>wellbeing.*</code> namespaces</td><td>3 independent servers (records / actions / wellbeing)</td><td>MCP transport unchanged — split when a second team owns one</td></tr>
-      <tr><td>LLM provider</td><td>Configurable via the <code>LLMClient</code> interface (T15) — Anthropic Claude is the default at launch</td><td>Additional providers wired in as needed (e.g. Azure OpenAI AU East for residency, Bedrock for sovereign hosting, Gemini / Mistral / GLM / local Ollama-vLLM). Per-task assignment in <code>models.config.ts</code> (T16).</td><td>The <code>LLMClient</code> interface is in place from day one — adding a provider is config, not orchestrator code</td></tr>
+      <tr><td>LLM provider</td><td>Configurable via the <code>LLMClient</code> interface (T15) — a single configured model at launch, no model fixed in code</td><td>Additional backends wired in as needed (e.g. a managed model endpoint in Azure AU East for residency, Bedrock for sovereign hosting, other hosted-provider APIs, or local self-hosting on Ollama · vLLM). Per-task assignment in <code>models.config.ts</code> (T16).</td><td>The <code>LLMClient</code> interface is in place from day one — adding a provider is config, not orchestrator code</td></tr>
       <tr><td>Retrieval</td><td>Dense vector only on pgvector</td><td>+ BM25 hybrid + BGE reranker (Qdrant if needed)</td><td>Retrieval pipeline is in-process — swap the pipeline, not the orchestrator</td></tr>
       <tr><td>SAP PO actions</td><td>1 action — LTU's selection from the five flows (defer · withdraw · transfer · change-load · special-consideration). Selection criterion: highest <em>impact &times; readiness</em> — most value on the seam where SAP PO + audit + schema can be proven cleanly.</td><td>The remaining four actions, added one at a time</td><td>Function-call schema + audit chain proven by the first action; the rest follow the same shape regardless of which is chosen</td></tr>
       <tr><td>State slices</td><td>USER + session log</td><td>+ MEMORY (curated facts) + per-student token budget</td><td>Per-turn state loader interface — add slices without changing call sites</td></tr>
@@ -295,29 +295,38 @@
   </div>
 
   <h2><span class="num">5.</span> Reactivation triggers</h2>
-  <p class="section-lead">A deferred feature isn't a "no" — it's a "not yet, here's the signal that flips it." Documented so the team doesn't drift back into building speculatively.</p>
+  <p class="section-lead">A deferred feature isn't a "no" — it's a "not yet, here's the signal that flips it." Documented so the team doesn't drift back into building speculatively. Each trigger maps to a specific catalogued metric in <a href="metrics-catalogue.html">metrics-catalogue.html</a> so the signal is observable from day one, not after-the-fact eyeballing.</p>
 
   <table>
     <thead><tr><th>#</th><th>Deferred feature</th><th>Reactivate when…</th><th>Where it goes</th></tr></thead>
     <tbody>
-      <tr><td class="id">R1</td><td>Split MCP into 3 servers</td><td class="trigger">A second team owns one of records / actions / wellbeing, or any one tool exceeds 10 RPS sustained.</td><td>Same Container Apps env · revive T19 design exactly</td></tr>
-      <tr><td class="id">R2</td><td>+ BM25 + BGE reranker</td><td class="trigger">Retrieval eval shows &gt;15% of corpus questions missing exact policy-name matches, or top-1 quality is below acceptance threshold.</td><td>Swap retrieval pipeline (in-process); Qdrant if pgvector hits scale</td></tr>
-      <tr><td class="id">R3</td><td>+ MEMORY (curated facts)</td><td class="trigger">Conversation logs show repeat context loss across sessions for the same student (e.g. course/year re-asked).</td><td>Add MEMORY slice to per-turn state loader</td></tr>
-      <tr><td class="id">R4</td><td>+ Per-student token budget</td><td class="trigger">Global cap is being hit, or per-student abuse pattern detected.</td><td>Budget counter at orchestrator middleware</td></tr>
-      <tr><td class="id">R5</td><td>+ Remaining SAP PO actions (the four not chosen for MVP)</td><td class="trigger">The first action has been in production ≥4 weeks without SAP PO incidents; intake volume or stakeholder priority justifies the next action.</td><td>New tool in <code>actions.*</code> namespace · same schema shape · added one at a time</td></tr>
-      <tr><td class="id">R6</td><td>Configure an additional LLM provider</td><td class="trigger">Residency review requires it (e.g. Azure OpenAI AU East / Bedrock Sydney), Anthropic quota or availability becomes a risk, or a per-task cost optimisation is identified (e.g. cheaper model for classification).</td><td>New <code>LLMClient</code> implementation behind the existing interface · per-task assignment in <code>models.config.ts</code> (T16) · no orchestrator change</td></tr>
-      <tr><td class="id">R7</td><td>Held-composer Express UX</td><td class="trigger">Email escalation produces measurable friction (advisor pickup latency, student drop-off), or wellbeing team requests in-channel hold as a duty-of-care upgrade.</td><td>Frontend Express surface · same distress detector + Express prompt</td></tr>
-      <tr><td class="id">R8</td><td>Docling + LlamaIndex ingestion</td><td class="trigger">Content variety grows past portal HTML (PDFs, Word, mixed structure), or ingestion job quality degrades on the existing corpus.</td><td>Swap ingestion job · no orchestrator change</td></tr>
+      <tr><td class="id">R1</td><td>Split MCP into 3 servers</td><td class="trigger">A second team owns one of records / actions / wellbeing, or any one tool exceeds 10 RPS sustained. <em>Signal: tool-server RPS &amp; <a href="metrics-catalogue.html#slo">M10 latency</a> per tool.</em></td><td>Same Container Apps env · revive T19 design exactly</td></tr>
+      <tr><td class="id">R2</td><td>+ BM25 + BGE reranker</td><td class="trigger">Retrieval eval shows &gt;15% of corpus questions missing exact policy-name matches, or top-1 quality is below acceptance threshold. <em>Signal: <a href="metrics-catalogue.html#parity">M4 weak-understanding</a> + <a href="metrics-catalogue.html#outcome">M20 grounded-answer rate</a>.</em></td><td>Swap retrieval pipeline (in-process); Qdrant if pgvector hits scale</td></tr>
+      <tr><td class="id">R3</td><td>+ MEMORY (curated facts)</td><td class="trigger">Conversation logs show repeat context loss across sessions for the same student (e.g. course/year re-asked). <em>Signal: derived from <a href="metrics-catalogue.html#slices">M30 first-touch vs returning</a> (returning ≈ first-touch implies no carryover).</em></td><td>Add MEMORY slice to per-turn state loader</td></tr>
+      <tr><td class="id">R4</td><td>+ Per-student token budget</td><td class="trigger">Global cap is being hit, or per-student abuse pattern detected. <em>Signal: <a href="metrics-catalogue.html#slo">M16 cost per turn</a> tail + per-<code>hashed_student_id</code> spend outliers.</em></td><td>Budget counter at orchestrator middleware</td></tr>
+      <tr><td class="id">R5</td><td>+ Remaining SAP PO actions (the four not chosen for MVP)</td><td class="trigger">The first action has been in production ≥4 weeks without SAP PO incidents; intake volume or stakeholder priority justifies the next action. <em>Signal: <a href="metrics-catalogue.html#slo">M14 Action API success</a> ≥ 98% sustained 4w.</em></td><td>New tool in <code>actions.*</code> namespace · same schema shape · added one at a time</td></tr>
+      <tr><td class="id">R6</td><td>Configure an additional LLM provider</td><td class="trigger">Residency review requires it (e.g. a managed endpoint AU East / Bedrock Sydney), the current model's quota or availability becomes a risk, or a per-task cost optimisation is identified (e.g. cheaper model for classification). <em>Signal: <a href="metrics-catalogue.html#slo">M11 error rate</a> spike (provider-side) or <a href="metrics-catalogue.html#slo">M16 cost</a> trending above pattern target.</em></td><td>New <code>LLMClient</code> implementation behind the existing interface · per-task assignment in <code>models.config.ts</code> (T16) · no orchestrator change</td></tr>
+      <tr><td class="id">R7</td><td>Held-composer Express UX</td><td class="trigger">Email escalation produces measurable friction (advisor pickup latency, student drop-off), or wellbeing team requests in-channel hold as a duty-of-care upgrade. <em>Signal: handoff pickup latency (gap &mdash; not yet in catalogue, see note below) + <a href="metrics-catalogue.html#outcome">M22 drop-off intent</a>.</em></td><td>Frontend Express surface · same distress detector + Express prompt</td></tr>
+      <tr><td class="id">R8</td><td>Docling + LlamaIndex ingestion</td><td class="trigger">Content variety grows past portal HTML (PDFs, Word, mixed structure), or ingestion job quality degrades on the existing corpus. <em>Signal: <a href="metrics-catalogue.html#outcome">M20 grounded-answer rate</a> trending down without prompt or model change.</em></td><td>Swap ingestion job · no orchestrator change</td></tr>
     </tbody>
   </table>
+
+  <div style="background:#FEF3C7;border-left:3px solid #B45309;padding:10px 14px;margin:14px 0;font-size:13px;border-radius:0 6px 6px 0;">
+    <strong>Catalogue gaps surfaced by this map.</strong> Three triggers
+    reference signals not yet in <a href="metrics-catalogue.html">metrics-catalogue.html</a>
+    — add before launch or accept reactivation will be eyeballed not metric-driven:
+    <strong>(a)</strong> per-MCP-tool RPS (R1),
+    <strong>(b)</strong> Express handoff pickup latency &mdash; advisor accept time (R7),
+    <strong>(c)</strong> repeat context loss across sessions for the same student (R3, only proxied today by M30).
+  </div>
 
   <h2><span class="num">6.</span> Risks and mitigations</h2>
   <table>
     <thead><tr><th>Risk <span class="pill pill-risk">manage</span></th><th>Likelihood</th><th>Mitigation</th></tr></thead>
     <tbody>
-      <tr><td>Vector-only retrieval misses exact policy-name queries</td><td>Medium</td><td>Ship retrieval eval harness in Foundation lane; R2 ready to fire on first signal</td></tr>
+      <tr><td>Vector-only retrieval misses exact policy-name queries</td><td>Medium</td><td>Ship retrieval eval harness in Foundation lane; R2 ready to fire on first signal (<a href="metrics-catalogue.html#parity">M4</a> + <a href="metrics-catalogue.html#outcome">M20</a>)</td></tr>
       <tr><td>Single Decide action feels narrow in stakeholder demos</td><td>Medium</td><td>Frame as the <em>thesis-proving action</em> — the goal is to prove the function-call + SAP PO + audit seam end-to-end on one transaction. Pair with a volume / impact figure for the chosen action (e.g. SSAF deferral targets ~7,648 sanctions; withdrawal volumes are similarly material) so the demo lands on value, not breadth.</td></tr>
-      <tr><td>Email escalation creates pickup-latency vs in-channel hold</td><td>Medium-High</td><td>Measure advisor pickup time from week one; R7 fires if it exceeds threshold</td></tr>
+      <tr><td>Email escalation creates pickup-latency vs in-channel hold</td><td>Medium-High</td><td>Measure advisor pickup time from week one; R7 fires if it exceeds threshold (new metric &mdash; not yet in <a href="metrics-catalogue.html">catalogue</a>)</td></tr>
       <tr><td>Single MCP server becomes a multi-team contention point</td><td>Low at launch</td><td>R1 trigger; namespaces are pre-split so the move is mechanical</td></tr>
       <tr><td>Stakeholder reads "lean" as "scope reduction" rather than "deferral on a seam"</td><td>High</td><td>Use the soundbite below; lead with Figure 1 and the reactivation table</td></tr>
       <tr><td>"Lean Charlie" gets locked in as the permanent shape</td><td>Medium</td><td>Triggers in §5 are explicit; review at 30 / 60 / 90 days post-launch</td></tr>
@@ -382,7 +391,7 @@
 
       <!-- LLMClient strip -->
       <rect x="60" y="262" width="800" height="36" rx="4" fill="#EEF0F4" stroke="#1F2A44" stroke-width="1.2"/>
-      <text x="460" y="280" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">LLMClient interface (T15) · Anthropic Claude is the launch default</text>
+      <text x="460" y="280" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A44">LLMClient interface (T15) · model is configurable, none fixed in code</text>
       <text x="460" y="293" text-anchor="middle" font-size="9" fill="#475569" font-style="italic">additional providers wired via models.config.ts (T16) under R6 — no orchestrator change</text>
 
       <!-- State loader -->
@@ -516,7 +525,7 @@
       <!-- Deferred dock band -->
       <rect x="40" y="362" width="840" height="58" rx="6" fill="#FBE5E0" stroke="#E47A6B" stroke-width="1" stroke-dasharray="4,3"/>
       <text x="56" y="380" font-size="10" font-weight="700" fill="#8E3424" letter-spacing="0.5">DEFERRED · DOCKS HERE WHEN TRIGGERS FIRE</text>
-      <text x="60" y="397" font-size="10" fill="#8E3424">+ alt LLM provider (R6: Azure OpenAI AU East, Bedrock Sydney, …) · + ltu-outbound-mcp for Nudge / Check-in</text>
+      <text x="60" y="397" font-size="10" fill="#8E3424">+ alt LLM provider (R6: managed endpoint AU East, Bedrock Sydney, …) · + ltu-outbound-mcp for Nudge / Check-in</text>
       <text x="60" y="412" font-size="10" fill="#8E3424">+ Held-composer Express UX (R7) · + 2nd–5th SAP PO actions (R5) · + Capacitor Android wrap (T13)</text>
 
       <!-- External band -->
@@ -530,7 +539,7 @@
       <text x="160" y="543" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">+ 4 more actions → R5</text>
 
       <rect x="300" y="480" width="280" height="68" rx="6" fill="#EDE9FE" stroke="#5B21B6" stroke-width="1.2"/>
-      <text x="440" y="500" text-anchor="middle" font-size="11" font-weight="700" fill="#5B21B6">Anthropic Claude API (SaaS)</text>
+      <text x="440" y="500" text-anchor="middle" font-size="11" font-weight="700" fill="#5B21B6">Configurable model API (SaaS)</text>
       <text x="440" y="515" text-anchor="middle" font-size="9" fill="#5B21B6">launch default · behind LLMClient (T15)</text>
       <text x="440" y="530" text-anchor="middle" font-size="8.5" fill="#5B21B6" font-style="italic">residency review → route via Bedrock Sydney if required</text>
       <text x="440" y="543" text-anchor="middle" font-size="8.5" fill="#A83D2A" font-style="italic">+ alt providers per-task → R6</text>
@@ -574,7 +583,7 @@
   <p>The full set of scripted scenarios (Aisha · Mark · Jess across early / mid–late / end-outcome lifecycle stages) lives in <code>prototype/docs/screenshots/</code> — one image per scenario, captured deterministically from the workshop prototype. The companion brief in <code>Charlie_Prototype_Brief_v4.md</code> describes the coverage matrix: eleven scenarios across the six patterns, no two scenarios sharing the same combination of persona, lifecycle, and pattern shape.</p>
 
   <footer class="foot">
-    <span><strong>Sources</strong> · personalisation-one-pager · decisions-and-rationale (T1, T13, T15, T17, T18, T19, X6, X7) · engagement-playbook</span>
+    <span><strong>Sources</strong> · personalisation-one-pager · <a href="decisions-and-rationale.html">decisions-and-rationale</a> (T1, T13, T15, T17, T18, T19, X6, X7) · <a href="infrastructure.html">infrastructure</a> · <a href="metrics-catalogue.html">metrics-catalogue</a> (R-trigger signals) · <a href="day-1-dashboard.html">day-1-dashboard</a> · engagement-playbook</span>
     <span>Companion to <code>personalisation-one-pager.pdf</code></span>
   </footer>
 
