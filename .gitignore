@@ -19,3 +19,6 @@ prototype/tsconfig.tsbuildinfo
 .env
 .env.*
 *.local
+
+# Handoff packages (built artifacts, not source)
+charlie-vc-handoff.zip
