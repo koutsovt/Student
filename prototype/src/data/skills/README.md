@@ -52,6 +52,7 @@ tools: [tool_names]
 handoff_targets: [other-skill-ids]
 version: 0.1.0
 status: draft
+release: launch | follow-up   # launch = the four reactive patterns; follow-up = Nudge + Check-in
 ---
 ```
 

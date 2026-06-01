@@ -16,6 +16,7 @@ handoff_targets:
   - express
 version: 0.1.0
 status: draft
+release: launch
 ---
 
 # Inform-and-Act
