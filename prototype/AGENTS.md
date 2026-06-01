@@ -116,3 +116,19 @@ Coverage: Inform-and-Act ×2, Status-Check ×2, Decide ×1, Express ×2, Nudge �
 - Not a substitute for the architecture / requirements work
 - Not exhaustive — eleven scenarios across three personas is the target. More scenarios are iteration two work, not workshop scope.
 - Not integrated with real email / SMS / LMS / CXone — all outbound and handoff flows are UI-only mocks
+
+## Production reference (not prototype scope)
+
+When this prototype graduates into the production build, the architecture & telemetry contracts already exist in `docs/`.
+
+**Settled runtime/provider direction (D1, 28 May 2026) — read this first.** The production runtime is the **managed Azure AI Foundry Agent Service** (Australia East). Models stay **configurable within the in-region Foundry catalogue** via Model Router (D4) — config, not code; no model named in code. **GPT-family at launch** (Claude is not in AU East on Foundry). Knowledge retrieval is **Azure AI Search** (D2), injection defence is **Prompt Shields** (D3), and we **own MEMORY** as system of record (D5). Provider-agnosticism (T15) is re-scoped to within-catalogue, not reversed. This is production reference — the prototype itself stays mock.
+
+- `docs/duplication-buy-vs-build-review.html` — the six decisions (D1–D6): what we build vs buy from managed Azure, and the residency trilemma. **Start here for the production direction.**
+- `docs/managed-foundry-alignment-review.html` — the merged production architecture (our pattern tier in front of the managed Foundry runtime)
+- `docs/infrastructure.html` — Azure topology, Pattern Router, managed Foundry runtime, MCP tool servers, repositories, Admin Console + Tool Registry UI, observability (reflects D1–D6)
+- `docs/decisions-and-rationale.html` — 90+ architecture decisions with rationale, incl. the D1–D6 records (§13)
+- `docs/ssaf-use-case.html` — SSAF as the MVP use case, traced end-to-end through every component
+- `docs/metrics-catalogue.html` — **the instrumentation contract.** 33 metrics (M1–M33) the production runtime emits, with per-pattern SLO thresholds, owners, and the emission point for each. Wire telemetry against this list, not against ad-hoc dashboards.
+- `docs/day-1-dashboard.html` — visual reference for what those metrics surface to at launch
+
+These are out of scope for prototype work but should be the source of truth when production instrumentation begins.

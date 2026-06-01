@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Replicate or duplicate? · build-vs-buy review &amp; decisions to present · La Trobe assistant</title>
+  <style>
+    :root {
+      --ltu-red:#C8102E;
+      --ltu-navy:#1F2A44;
+      --surface:#FFFFFF;
+      --surface-soft:#F5F7FA;
+      --border:#E5E7EB;
+      --muted:#6B7280;
+      --success:#0F7B5C;
+      --amber:#B45309;
+      --purple:#5B21B6;
+      --blue:#1D4ED8;
+    }
+    * { box-sizing:border-box; }
+    html, body {
+      margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+      color:var(--ltu-navy);
+      font-size:14px; line-height:1.55;
+      background:var(--surface);
+    }
+    .container { max-width:1180px; margin:0 auto; padding:0 24px 80px; }
+    header.cover { border-bottom:3px solid var(--ltu-red); padding:32px 0 18px; margin-bottom:26px; }
+    .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.20em; text-transform:uppercase; color:var(--ltu-red); }
+    h1 { font-size:29px; margin:6px 0 8px; line-height:1.15; }
+    .lead { max-width:880px; color:rgba(31,42,68,0.85); font-size:15px; }
+    .meta { font-size:12px; color:var(--muted); margin-top:8px; }
+
+    h2 { font-size:19px; margin:40px 0 6px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+    h3 { font-size:15px; margin:22px 0 6px; }
+    .section-lead { font-size:13px; color:rgba(31,42,68,0.78); margin:0 0 12px; }
+
+    table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+    th { text-align:left; font-size:10px; font-weight:700; letter-spacing:0.10em; text-transform:uppercase; color:var(--muted); padding:6px 10px; border-bottom:2px solid var(--border); background:var(--surface-soft); vertical-align:bottom; }
+    td { padding:8px 10px; vertical-align:top; border-bottom:1px solid var(--border); color:rgba(31,42,68,0.88); }
+    td.dim { font-weight:700; color:var(--ltu-navy); width:22%; }
+    tr:hover td { background:rgba(245,247,250,0.5); }
+
+    code { font-family:'SF Mono',Menlo,monospace; font-size:12px; background:var(--surface-soft); padding:1px 5px; border-radius:3px; }
+
+    .callout { background:var(--surface-soft); border-left:3px solid var(--ltu-navy); padding:10px 14px; margin:14px 0; font-size:13px; border-radius:0 6px 6px 0; }
+    .callout.red { border-left-color:var(--ltu-red); background:rgba(200,16,46,0.04); }
+    .callout.green { border-left-color:var(--success); background:rgba(15,123,92,0.06); }
+    .callout.amber { border-left-color:var(--amber); background:rgba(180,83,9,0.06); }
+    .callout.blue { border-left-color:var(--blue); background:rgba(29,78,216,0.05); }
+    .callout strong { color:var(--ltu-navy); }
+
+    ul.tight { margin:6px 0 14px; padding-left:20px; }
+    ul.tight li { margin-bottom:5px; }
+
+    .verdict { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin:18px 0 8px; }
+    .vcard { border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:#fff; }
+    .vcard .label { font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+    .vcard .body { font-size:13px; margin-top:4px; }
+    .vcard.keep   { border-top:3px solid var(--success); }
+    .vcard.buy    { border-top:3px solid var(--blue); }
+    .vcard.decide { border-top:3px solid var(--amber); }
+
+    svg { display:block; width:100%; height:auto; border:1px solid var(--border); border-radius:14px; background:#fff; margin:16px 0; }
+    .legend { display:flex; flex-wrap:wrap; gap:14px; margin:14px 0; font-size:12px; color:#334155; }
+    .key { display:inline-flex; align-items:center; gap:6px; }
+    .sw { width:16px; height:12px; border-radius:3px; display:inline-block; border:1.5px solid currentColor; }
+
+    .t-title { font-size:12.5px; font-weight:800; }
+    .t-sub { font-size:10.5px; }
+    .t-small { font-size:10px; }
+    .t-tiny { font-size:9px; }
+    .sec { font-size:12px; font-weight:800; letter-spacing:.04em; }
+
+    /* decision cards */
+    .dcard { border:1px solid var(--border); border-left:4px solid var(--ltu-navy); border-radius:8px; padding:14px 16px; margin:14px 0; background:#fff; }
+    .dcard h3 { margin:0 0 4px; font-size:15px; }
+    .dcard .did { font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--ltu-red); text-transform:uppercase; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 10px; }
+    .chip { font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:3px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); background:var(--surface-soft); }
+    .chip.proposed { color:var(--amber); border-color:rgba(180,83,9,0.35); background:rgba(180,83,9,0.07); }
+    .chip.cond     { color:var(--purple); border-color:rgba(91,33,182,0.30); background:rgba(91,33,182,0.06); }
+    .chip.hard     { color:var(--ltu-red); border-color:rgba(200,16,46,0.30); background:rgba(200,16,46,0.06); }
+    .rec { background:rgba(15,123,92,0.06); border-left:3px solid var(--success); padding:8px 12px; border-radius:0 6px 6px 0; margin-top:8px; font-size:13px; }
+    .rec strong { color:var(--success); }
+    .opt { font-size:13px; margin:4px 0; }
+    .opt b { color:var(--ltu-navy); }
+    .x { color:var(--ltu-red); font-weight:700; }
+    .ok { color:var(--success); font-weight:700; }
+
+    footer.foot { margin-top:54px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+    .refs { font-size:11.5px; color:var(--muted); }
+    .refs li { margin-bottom:3px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header class="cover">
+    <div class="eyebrow">La Trobe assistant · solution-architecture review</div>
+    <h1>Replicate or duplicate? Build-vs-buy against the managed Microsoft components — and the decisions to present</h1>
+    <p class="lead">
+      With Microsoft's managed AI components (Foundry Agent Service, Foundry IQ, Model Router, Azure AI Search,
+      Prompt Shields, managed memory) now shipping, the question is whether our reference design <em>replicates</em>
+      capability we genuinely need to own, or <em>duplicates</em> capability we can now buy. This note answers that
+      component-by-component, validates the design against requirements using current (May 2026) Microsoft
+      documentation, and sets out six decisions to put to the steering group.
+    </p>
+    <p class="meta">Companion to <code>infrastructure.html</code> and <code>managed-foundry-alignment-review.html</code> · capability claims verified against Microsoft Learn, doc dates May 2026 · all decisions below are <strong>proposed</strong>, for steering sign-off</p>
+  </header>
+
+  <!-- =========================================================== -->
+  <h2>1. The answer in three cards</h2>
+  <p class="section-lead">Both are happening. The job is to keep what differentiates us, stop self-hosting what is now managed, and make two trade-offs explicitly rather than by default.</p>
+  <div class="verdict">
+    <div class="vcard keep">
+      <div class="label">Keep &amp; build — genuine differentiators</div>
+      <div class="body">Pattern-classification <em>logic</em>, the distress / Express held-state path, the skills &amp; pattern-prompt library, the SAP&nbsp;PO action middleware. No managed equivalent exists.</div>
+    </div>
+    <div class="vcard buy">
+      <div class="label">Stop &amp; buy — we are duplicating these</div>
+      <div class="body">Self-hosted retrieval (→ Azure AI Search), custom prompt-injection defence (→ Prompt Shields), hand-rolled per-task model routing (→ Model Router). All GA, all available in Australia East.</div>
+    </div>
+    <div class="vcard decide">
+      <div class="label">Decided / to decide</div>
+      <div class="body"><strong>D1 is now set</strong> — fully-managed Foundry runtime (AU&nbsp;East) with models kept configurable via the catalogue + Model Router. Still open: which layer owns memory (D5).</div>
+    </div>
+  </div>
+  <div class="callout red">
+    <strong>The one finding that reframes the alignment review:</strong> its central premise — &ldquo;Foundry has no
+    classifier or routing, so we must build it all in front&rdquo; — is now <em>partially out of date</em>. Microsoft
+    shipped <strong>Model Router</strong> (GA, model-level classify-and-route) and <strong>connected-agent / handoff
+    orchestration</strong> (preview, behaviour-level routing). Our <em>intent-classification logic</em> is still ours to
+    own — but the routing <em>plumbing</em> is now a managed pattern we should not hand-roll.
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>2. Build / buy / decide — the component map</h2>
+  <p class="section-lead">Every application-layer component from <code>infrastructure.html</code>, sorted by whether a managed Microsoft equivalent now exists. Green stays ours; blue moves to managed; amber is a steering decision.</p>
+
+  <div class="legend">
+    <span class="key" style="color:#059669"><span class="sw" style="background:#D1FAE5"></span>Keep &amp; build (differentiator)</span>
+    <span class="key" style="color:#1D4ED8"><span class="sw" style="background:#DBEAFE"></span>Stop &amp; buy (now managed, GA)</span>
+    <span class="key" style="color:#B45309"><span class="sw" style="background:#FEF3C7"></span>Decide (trade-off)</span>
+  </div>
+
+  <svg viewBox="0 0 1180 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Build, buy, decide component map">
+    <defs>
+      <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#0f172a" flood-opacity="0.12"/></filter>
+    </defs>
+
+    <!-- columns -->
+    <rect x="20" y="20" width="370" height="520" rx="14" fill="#F0FDF4" stroke="#059669" stroke-width="2" stroke-dasharray="9,6"/>
+    <rect x="405" y="20" width="370" height="520" rx="14" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="2" stroke-dasharray="9,6"/>
+    <rect x="790" y="20" width="370" height="520" rx="14" fill="#FFFBEB" stroke="#B45309" stroke-width="2" stroke-dasharray="9,6"/>
+
+    <text x="40" y="46" class="sec" fill="#047857">KEEP &amp; BUILD</text>
+    <text x="40" y="62" class="t-tiny" fill="#047857">no managed equivalent</text>
+    <text x="425" y="46" class="sec" fill="#1D4ED8">STOP &amp; BUY</text>
+    <text x="425" y="62" class="t-tiny" fill="#1D4ED8">GA · in Australia East</text>
+    <text x="810" y="46" class="sec" fill="#92400E">DECIDE</text>
+    <text x="810" y="62" class="t-tiny" fill="#92400E">deliberate trade-off</text>
+
+    <!-- KEEP boxes -->
+    <g>
+      <rect x="40" y="78" width="330" height="58" rx="9" fill="#D1FAE5" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+      <text x="55" y="100" class="t-title" fill="#065F46">Pattern classifier — the logic</text>
+      <text x="55" y="116" class="t-sub" fill="#065F46">{pattern·topic·purpose·risk} · the business case</text>
+      <text x="55" y="129" class="t-tiny" fill="#047857">no turnkey intent router; orchestration plumbing now managed</text>
+
+      <rect x="40" y="146" width="330" height="58" rx="9" fill="#D1FAE5" stroke="#C8102E" stroke-width="1.8" filter="url(#sh)"/>
+      <text x="55" y="168" class="t-title" fill="#9F1239">Distress / Express path</text>
+      <text x="55" y="184" class="t-sub" fill="#065F46">held state · review queue · in-channel handoff</text>
+      <text x="55" y="197" class="t-tiny" fill="#9F1239">Content Safety does severity only — not the duty-of-care flow</text>
+
+      <rect x="40" y="214" width="330" height="54" rx="9" fill="#D1FAE5" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+      <text x="55" y="236" class="t-title" fill="#065F46">Skills &amp; pattern-prompt library</text>
+      <text x="55" y="252" class="t-sub" fill="#065F46">git-versioned · A/B via revisions · no managed equivalent</text>
+
+      <rect x="40" y="278" width="330" height="54" rx="9" fill="#D1FAE5" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+      <text x="55" y="300" class="t-title" fill="#065F46">MCP tool servers → SAP PO</text>
+      <text x="55" y="316" class="t-sub" fill="#065F46">records · actions · wellbeing · idempotency + audit</text>
+
+      <rect x="40" y="342" width="330" height="54" rx="9" fill="#D1FAE5" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+      <text x="55" y="364" class="t-title" fill="#065F46">Safety subsystem (ours)</text>
+      <text x="55" y="380" class="t-sub" fill="#065F46">budget enforcer · output DLP · two-tier review queue</text>
+
+      <rect x="40" y="406" width="330" height="54" rx="9" fill="#D1FAE5" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+      <text x="55" y="428" class="t-title" fill="#065F46">Pattern-tagged analytics log</text>
+      <text x="55" y="444" class="t-sub" fill="#065F46">cohort insight generic logs can't reconstruct</text>
+    </g>
+
+    <!-- BUY boxes -->
+    <g>
+      <rect x="425" y="78" width="330" height="62" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6" filter="url(#sh)"/>
+      <text x="440" y="100" class="t-title" fill="#1D4ED8">Retrieval pipeline → Azure AI Search</text>
+      <text x="440" y="116" class="t-sub" fill="#1E40AF">replaces Docling+LlamaIndex+pgvector+ParadeDB+BGE</text>
+      <text x="440" y="131" class="t-tiny" fill="#1D4ED8">vector + hybrid + semantic rank · GA · biggest duplication</text>
+
+      <rect x="425" y="150" width="330" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6" filter="url(#sh)"/>
+      <text x="440" y="172" class="t-title" fill="#1D4ED8">Injection defence → Prompt Shields</text>
+      <text x="440" y="188" class="t-sub" fill="#1E40AF">direct jailbreak + indirect / XPIA · GA</text>
+      <text x="440" y="201" class="t-tiny" fill="#1D4ED8">retires custom canary/validation as the primary control</text>
+
+      <rect x="425" y="218" width="330" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6" filter="url(#sh)"/>
+      <text x="440" y="240" class="t-title" fill="#1D4ED8">Per-task routing → Model Router</text>
+      <text x="440" y="256" class="t-sub" fill="#1E40AF">Cost / Quality / Balanced · GA for core models</text>
+      <text x="440" y="269" class="t-tiny" fill="#1D4ED8">applies on the managed model path (per D1)</text>
+
+      <rect x="425" y="286" width="330" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6" filter="url(#sh)"/>
+      <text x="440" y="308" class="t-title" fill="#1D4ED8">Self-harm severity → Content Safety</text>
+      <text x="440" y="324" class="t-sub" fill="#1E40AF">GA · seeds the distress classifier's first pass</text>
+      <text x="440" y="337" class="t-tiny" fill="#1D4ED8">the escalation flow stays ours (see Keep)</text>
+
+      <rect x="425" y="354" width="330" height="74" rx="9" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6" filter="url(#sh)"/>
+      <text x="440" y="376" class="t-title" fill="#6D28D9">Borrow when GA — preview today</text>
+      <text x="440" y="392" class="t-sub" fill="#5B21B6">Foundry IQ (agentic retrieval) · groundedness detection</text>
+      <text x="440" y="406" class="t-sub" fill="#5B21B6">multi-agent handoff · long-term memory tool</text>
+      <text x="440" y="420" class="t-tiny" fill="#6D28D9">design toward — do not make launch-critical</text>
+    </g>
+
+    <!-- DECIDE boxes -->
+    <g>
+      <rect x="810" y="78" width="330" height="118" rx="9" fill="#FEF3C7" stroke="#B45309" stroke-width="1.8" filter="url(#sh)"/>
+      <text x="825" y="100" class="t-title" fill="#92400E">D1 · Model provider &amp; residency</text>
+      <text x="825" y="118" class="t-sub" fill="#92400E">the model-freedom / AU East / managed trilemma</text>
+      <text x="825" y="135" class="t-sub" fill="#92400E">all three not available today (§5)</text>
+      <text x="825" y="155" class="t-tiny" fill="#9F1239" font-weight="700">decides whether Foundry runtime &amp; Model Router apply</text>
+      <text x="825" y="172" class="t-tiny" fill="#92400E">hard constraint: T17 Australian residency</text>
+      <text x="825" y="187" class="t-tiny" fill="#92400E">stakeholder pitch: T15 provider-agnostic, no lock-in</text>
+
+      <rect x="810" y="206" width="330" height="92" rx="9" fill="#FEF3C7" stroke="#B45309" stroke-width="1.8" filter="url(#sh)"/>
+      <text x="825" y="228" class="t-title" fill="#92400E">D5 · Who owns memory</text>
+      <text x="825" y="246" class="t-sub" fill="#92400E">our governed MEMORY tier vs Foundry managed memory</text>
+      <text x="825" y="263" class="t-tiny" fill="#9F1239" font-weight="700">avoids two competing sources of truth</text>
+      <text x="825" y="279" class="t-tiny" fill="#92400E">sanitisation · bounding · RLS · residency favour owning</text>
+      <text x="825" y="292" class="t-tiny" fill="#92400E">managed long-term memory is preview anyway</text>
+
+      <rect x="810" y="308" width="330" height="62" rx="9" fill="#FFFFFF" stroke="#B45309" stroke-width="1.5" filter="url(#sh)"/>
+      <text x="825" y="330" class="t-title" fill="#92400E">Runtime fork (inside D1)</text>
+      <text x="825" y="347" class="t-sub" fill="#92400E">Foundry Agent Service vs our LLMClient orchestrator</text>
+      <text x="825" y="361" class="t-tiny" fill="#92400E">the buy/keep items in blue are adoptable either way</text>
+
+      <rect x="810" y="380" width="330" height="80" rx="9" fill="#FFFFFF" stroke="#B45309" stroke-width="1.5" filter="url(#sh)"/>
+      <text x="825" y="402" class="t-title" fill="#92400E">Key insight</text>
+      <text x="825" y="420" class="t-sub" fill="#92400E">the managed components (AI Search, Prompt Shields,</text>
+      <text x="825" y="435" class="t-sub" fill="#92400E">Content Safety) are AU-East-safe and adoptable</text>
+      <text x="825" y="450" class="t-sub" fill="#92400E"><tspan font-weight="700">independent of the runtime decision.</tspan> Take them now.</text>
+    </g>
+  </svg>
+
+  <!-- =========================================================== -->
+  <h2>3. Where we duplicate, where we differentiate</h2>
+  <p class="section-lead">The same components, with the current managed equivalent and the verdict. &ldquo;Today&rdquo; means generally available unless marked <em>preview</em>.</p>
+  <table>
+    <thead><tr><th>Our component</th><th>Managed Microsoft equivalent — today</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="dim">Pattern classifier → <code>{pattern·topic·purpose·risk}</code></td>
+        <td>No turnkey intent router. Multi-agent <strong>handoff / connected agents</strong> exist but are <em>preview</em>; <strong>Model Router</strong> routes at the model level only.</td>
+        <td><span class="ok">KEEP</span> — the classification <em>logic</em> is the business case and genuinely ours. Use Agent Framework handoff plumbing; don't hand-roll orchestration.</td>
+      </tr>
+      <tr>
+        <td class="dim">Per-task model selector (T16)</td>
+        <td><strong>Model Router — GA</strong> for the platform's core models. Classify-and-route by Cost / Quality / Balanced; failover; subset restriction.</td>
+        <td><span style="color:var(--blue);font-weight:700">BUY (active)</span> — D1 set the managed model path, so Model Router replaces the hand-rolled selector. Keep a thin config layer above it so model choice stays explicit.</td>
+      </tr>
+      <tr>
+        <td class="dim">Retrieval: Docling + LlamaIndex + pgvector + ParadeDB BM25 + BGE rerank (self-host)</td>
+        <td><strong>Azure AI Search — GA</strong> (vector / hybrid / semantic rank). <strong>Foundry IQ — preview</strong> (agentic retrieval over the same).</td>
+        <td><span style="color:var(--blue);font-weight:700">BUY — the biggest duplication.</span> Default to AI Search; keep pgvector only against a measured quality gap.</td>
+      </tr>
+      <tr>
+        <td class="dim">Prompt-injection defence — canary tokens, content validation (SEC6/7)</td>
+        <td><strong>Prompt Shields — GA.</strong> Direct jailbreak <em>and</em> indirect / cross-prompt (XPIA) injection.</td>
+        <td><span style="color:var(--blue);font-weight:700">BUY</span> — purpose-built and GA. Keep structural separators as defence-in-depth only.</td>
+      </tr>
+      <tr>
+        <td class="dim">Risk / distress classifier + held state + two-tier review queue</td>
+        <td>Content Safety self-harm = <em>severity classification</em> (GA), <strong>not</strong> a crisis / escalation flow.</td>
+        <td><span class="ok">KEEP</span> — the held-state, review queue and in-channel join are ours. Seed first-pass severity from Content Safety.</td>
+      </tr>
+      <tr>
+        <td class="dim">Skills &amp; pattern-prompt library (git-versioned, A/B)</td>
+        <td>None.</td>
+        <td><span class="ok">KEEP</span> — clean, not duplicated. Feeds the agent's per-turn instructions whichever runtime wins.</td>
+      </tr>
+      <tr>
+        <td class="dim">MCP tool servers → SAP PO (records / actions / wellbeing)</td>
+        <td>Agent tool-calling exists, but SAP PO routing + idempotency + audit are ours.</td>
+        <td><span class="ok">KEEP</span></td>
+      </tr>
+      <tr>
+        <td class="dim">Custom MEMORY tier (~800 tok, sanitised, RLS) + session log</td>
+        <td><strong>Threads — GA</strong> (short-term). <strong>Long-term per-user memory tool — preview</strong> (Ignite Nov 2025).</td>
+        <td><span style="color:var(--amber);font-weight:700">DECIDE (D5)</span> — managed now exists, but sanitisation / bounding / RLS / residency may justify owning it.</td>
+      </tr>
+      <tr>
+        <td class="dim">Orchestrator core — self-hosted agent runtime behind <code>LLMClient</code> (T15)</td>
+        <td><strong>Foundry Agent Service</strong> — managed agent runtime.</td>
+        <td><span class="ok">DECIDED → Foundry</span> (D1). Managed runtime adopted; models stay configurable via the catalogue. T15 re-scoped to within-catalogue, not reversed.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- =========================================================== -->
+  <h2>4. Requirements validation — what current docs confirm and contradict</h2>
+  <p class="section-lead">Checked against Microsoft Learn, doc dates May 2026. Three findings are sharp enough to act on before committing; one is a standing caveat.</p>
+
+  <div class="callout red">
+    <strong>Finding 1 — unrestricted model choice + Australian residency + the managed runtime are mutually exclusive today.</strong>
+    The reference design wants any-model / provider freedom (<code>T15</code>) with hard AU residency (<code>T17</code>). But <strong>some
+    managed-catalogue models run only outside Australia (US / EU regions) and some need an Enterprise / MCA-E subscription — not Australia East.</strong>
+    So &ldquo;any model, in-region, on the managed runtime&rdquo; cannot all hold; the in-region configurable set is a subset of the catalogue.
+    This is the trilemma in §5 and decision D1.
+  </div>
+  <div class="callout amber">
+    <strong>Finding 2 — an in-region baseline model retires in Australia East on 3 June 2026.</strong> If D1 lands on the managed
+    in-region path, a current baseline model is about to retire in-region with its successor not yet confirmed for AU East.
+    Confirm the replacement before committing the managed path.
+  </div>
+  <div class="callout amber">
+    <strong>Finding 3 — PTU is a cap, not a capacity guarantee.</strong> Microsoft warns a region/model can &ldquo;sell out&rdquo;.
+    On the managed path the scale lever becomes model PTU/quota — exactly when every student logs in at census. Reserve
+    AU East PTU ahead of census; do not assume availability.
+  </div>
+  <div class="callout blue">
+    <strong>Standing caveat — the most attractive managed pieces are preview.</strong> Foundry IQ, long-term memory,
+    multi-agent orchestration and wider-catalogue model routing are all <em>preview</em>. Design toward them; treat them as
+    &ldquo;expected at or after launch&rdquo;, not guaranteed-GA foundations. (See the maturity strip below.)
+  </div>
+
+  <h3>Managed-feature maturity — what you may depend on at launch</h3>
+  <svg viewBox="0 0 1180 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GA versus preview maturity of managed features">
+    <rect x="20" y="20" width="560" height="210" rx="12" fill="#F0FDF4" stroke="#059669" stroke-width="2"/>
+    <rect x="600" y="20" width="560" height="210" rx="12" fill="#FFFBEB" stroke="#B45309" stroke-width="2"/>
+    <text x="40" y="46" class="sec" fill="#047857">GA — SAFE TO DEPEND ON AT LAUNCH</text>
+    <text x="620" y="46" class="sec" fill="#92400E">PREVIEW — DESIGN TOWARD, DON'T HARD-DEPEND</text>
+
+    <g font-weight="700">
+      <rect x="40" y="62" width="250" height="34" rx="7" fill="#D1FAE5" stroke="#059669"/><text x="55" y="83" class="t-small" fill="#065F46">Azure AI Search (vector/hybrid/semantic)</text>
+      <rect x="300" y="62" width="260" height="34" rx="7" fill="#D1FAE5" stroke="#059669"/><text x="315" y="83" class="t-small" fill="#065F46">Prompt Shields (direct + indirect/XPIA)</text>
+      <rect x="40" y="104" width="250" height="34" rx="7" fill="#D1FAE5" stroke="#059669"/><text x="55" y="125" class="t-small" fill="#065F46">Content Safety — harmful/self-harm severity</text>
+      <rect x="300" y="104" width="260" height="34" rx="7" fill="#D1FAE5" stroke="#059669"/><text x="315" y="125" class="t-small" fill="#065F46">Agent Service — prompt agents + threads</text>
+      <rect x="40" y="146" width="250" height="34" rx="7" fill="#D1FAE5" stroke="#059669"/><text x="55" y="167" class="t-small" fill="#065F46">Model Router — core models (Cost/Quality)</text>
+      <rect x="300" y="146" width="260" height="34" rx="7" fill="#D1FAE5" stroke="#059669"/><text x="315" y="167" class="t-small" fill="#065F46">Managed model endpoint in Australia East</text>
+    </g>
+    <text x="40" y="206" class="t-tiny" fill="#047857">Build launch-critical paths on these.</text>
+
+    <g font-weight="700">
+      <rect x="620" y="62" width="250" height="34" rx="7" fill="#FEF3C7" stroke="#B45309"/><text x="635" y="83" class="t-small" fill="#92400E">Foundry IQ — agentic retrieval</text>
+      <rect x="880" y="62" width="260" height="34" rx="7" fill="#FEF3C7" stroke="#B45309"/><text x="895" y="83" class="t-small" fill="#92400E">Long-term per-user memory tool</text>
+      <rect x="620" y="104" width="250" height="34" rx="7" fill="#FEF3C7" stroke="#B45309"/><text x="635" y="125" class="t-small" fill="#92400E">Connected agents / handoff / workflows</text>
+      <rect x="880" y="104" width="260" height="34" rx="7" fill="#FEF3C7" stroke="#B45309"/><text x="895" y="125" class="t-small" fill="#92400E">Groundedness + Task-Adherence detection</text>
+      <rect x="620" y="146" width="250" height="34" rx="7" fill="#FEF3C7" stroke="#B45309"/><text x="635" y="167" class="t-small" fill="#92400E">Model Router → wider-catalogue targets</text>
+      <rect x="880" y="146" width="260" height="34" rx="7" fill="#FFE4E6" stroke="#C8102E"/><text x="895" y="163" class="t-tiny" fill="#9F1239">Some catalogue models — preview AND</text><text x="895" y="175" class="t-tiny" fill="#9F1239">out-of-region only (not AU East)</text>
+    </g>
+    <text x="620" y="206" class="t-tiny" fill="#92400E">Treat as &ldquo;later / follow-up&rdquo;. Keep a GA fallback for anything launch-critical.</text>
+  </svg>
+
+  <!-- =========================================================== -->
+  <h2>5. The decision that gates the rest — the residency trilemma</h2>
+  <p class="section-lead">Three things we want at once. Today you can have any two. The pairing you drop determines the runtime, whether Model Router applies, and whether the stakeholder &ldquo;not locked in&rdquo; promise survives.</p>
+
+  <svg viewBox="0 0 1000 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trilemma: unrestricted model freedom, Australian residency, managed runtime — pick two">
+    <defs>
+      <marker id="d" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94A3B8"/></marker>
+    </defs>
+
+    <!-- triangle edges -->
+    <line x1="500" y1="92" x2="180" y2="470" stroke="#0F7B5C" stroke-width="3"/>
+    <line x1="500" y1="92" x2="820" y2="470" stroke="#0F7B5C" stroke-width="3"/>
+    <line x1="180" y1="470" x2="820" y2="470" stroke="#C8102E" stroke-width="3" stroke-dasharray="8,6"/>
+
+    <!-- center -->
+    <text x="500" y="300" text-anchor="middle" font-size="22" font-weight="800" fill="#1F2A44">PICK TWO</text>
+    <text x="500" y="322" text-anchor="middle" class="t-sub" fill="#6B7280">all three is not available today (May 2026)</text>
+
+    <!-- corner: residency (top) -->
+    <rect x="360" y="36" width="280" height="64" rx="12" fill="#FFE4E6" stroke="#C8102E" stroke-width="2" filter="url(#sh)"/>
+    <text x="500" y="60" text-anchor="middle" class="t-title" fill="#9F1239">Australian data residency</text>
+    <text x="500" y="77" text-anchor="middle" class="t-sub" fill="#9F1239">T17 — hard requirement for student data</text>
+    <text x="500" y="91" text-anchor="middle" class="t-tiny" fill="#C8102E" font-weight="700">non-negotiable</text>
+
+    <!-- corner: model freedom (bottom-left) -->
+    <rect x="40" y="476" width="280" height="64" rx="12" fill="#EDE9FE" stroke="#6D28D9" stroke-width="2" filter="url(#sh)"/>
+    <text x="180" y="500" text-anchor="middle" class="t-title" fill="#6D28D9">Unrestricted model choice</text>
+    <text x="180" y="517" text-anchor="middle" class="t-sub" fill="#5B21B6">T15 · any model, any provider</text>
+    <text x="180" y="531" text-anchor="middle" class="t-tiny" fill="#5B21B6">cross-cloud &amp; &ldquo;not locked in&rdquo;</text>
+
+    <!-- corner: Foundry (bottom-right) -->
+    <rect x="680" y="476" width="280" height="64" rx="12" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="2" filter="url(#sh)"/>
+    <text x="820" y="500" text-anchor="middle" class="t-title" fill="#1D4ED8">Foundry-managed runtime</text>
+    <text x="820" y="517" text-anchor="middle" class="t-sub" fill="#1E40AF">Agent Service · IQ · Model Router</text>
+    <text x="820" y="531" text-anchor="middle" class="t-tiny" fill="#1E40AF">managed-ops simplicity</text>
+
+    <!-- edge label: residency + model freedom (left, viable) -->
+    <rect x="60" y="210" width="270" height="96" rx="10" fill="#F0FDF4" stroke="#0F7B5C" stroke-width="1.6"/>
+    <text x="195" y="232" text-anchor="middle" class="t-small" font-weight="800" fill="#047857">✓ Residency + model freedom</text>
+    <text x="195" y="251" text-anchor="middle" class="t-tiny" fill="#065F46">Run any model via a sovereign endpoint</text>
+    <text x="195" y="265" text-anchor="middle" class="t-tiny" fill="#065F46">(e.g. Sydney) or self-host. Keeps LLMClient.</text>
+    <text x="195" y="283" text-anchor="middle" class="t-tiny" fill="#9F1239" font-weight="700">drop: managed runtime</text>
+    <text x="195" y="297" text-anchor="middle" class="t-tiny" fill="#047857">we own orchestrator + retrieval</text>
+
+    <!-- edge label: residency + Foundry (right, viable) -->
+    <rect x="670" y="210" width="270" height="96" rx="10" fill="#F0FDF4" stroke="#0F7B5C" stroke-width="1.6"/>
+    <text x="805" y="232" text-anchor="middle" class="t-small" font-weight="800" fill="#047857">✓ Residency + managed runtime</text>
+    <text x="805" y="251" text-anchor="middle" class="t-tiny" fill="#065F46">Configurable in-region catalogue, AU East.</text>
+    <text x="805" y="265" text-anchor="middle" class="t-tiny" fill="#065F46">Model Router + IQ + Prompt Shields apply.</text>
+    <text x="805" y="283" text-anchor="middle" class="t-tiny" fill="#9F1239" font-weight="700">drop: unrestricted cross-cloud choice</text>
+    <text x="805" y="297" text-anchor="middle" class="t-tiny" fill="#92400E">+ verify in-region model retirement (3 Jun 2026)</text>
+
+    <!-- edge label: model freedom + managed (bottom, NON-STARTER) -->
+    <rect x="350" y="430" width="300" height="80" rx="10" fill="#FFE4E6" stroke="#C8102E" stroke-width="1.8"/>
+    <text x="500" y="452" text-anchor="middle" class="t-small" font-weight="800" fill="#9F1239">✗ Model freedom + managed</text>
+    <text x="500" y="470" text-anchor="middle" class="t-tiny" fill="#9F1239">some catalogue models = out-of-region only</text>
+    <text x="500" y="484" text-anchor="middle" class="t-tiny" fill="#9F1239">+ some need Enterprise / MCA-E</text>
+    <text x="500" y="501" text-anchor="middle" class="t-tiny" fill="#C8102E" font-weight="700">breaks T17 → non-starter for student data</text>
+  </svg>
+
+  <div class="callout green">
+    <strong>The architect's resolution: decouple the runtime fork from the component buys.</strong> The trilemma only
+    bites the <em>runtime</em> choice (Agent Service vs our <code>LLMClient</code> orchestrator). The managed
+    <em>components</em> that cut our biggest duplication — <strong>Azure AI Search, Prompt Shields, Content Safety</strong> —
+    are GA, available in Australia East, and adoptable <em>either way</em>. So: adopt those now (D2–D4), and treat D1 as the
+    one genuine fork, not an all-or-nothing &ldquo;Foundry or not&rdquo; bet.
+  </div>
+  <div class="callout red">
+    <strong>Decision taken — the right-hand edge.</strong> The runtime goes to <strong>Foundry-managed (Australia East)</strong>,
+    with <strong>models kept configurable</strong> via the Foundry catalogue + Model Router (selection retained as config, not code).
+    This accepts the <em>residency + managed runtime</em> pairing: the configurable set at launch is <strong>whatever the managed platform offers in the Australian region</strong>, and
+    <strong>unrestricted cross-cloud / any-model choice is dropped</strong> (some catalogue models are out-of-region only). <code>T15</code> is therefore
+    <em>re-scoped</em> — portability narrows from cross-cloud to within the in-region catalogue — not fully reversed. Keeping an out-of-region model in scope would be a
+    side path via a sovereign endpoint (e.g. Sydney) <em>outside</em> the managed runtime. Confirm the in-region model retirement successor (3 June) before it becomes the baseline.
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>6. Decisions to present</h2>
+  <p class="section-lead"><strong>D1 and D4 now carry the direction set in review</strong> — fully-managed Foundry runtime (AU East) with models kept configurable; D2, D3, D5 and D6 remain <strong>proposed</strong> for sign-off. Suggested home: append as records to <code>decisions-and-rationale.html</code>.</p>
+
+  <table>
+    <thead><tr><th>#</th><th>Decision</th><th>Recommendation</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td class="dim" style="width:6%">D1</td><td>Model provider &amp; data residency (the trilemma)</td><td>Fully-managed Foundry runtime (AU East); models configurable via catalogue + Model Router; in-region catalogue at launch; T15 re-scoped</td><td>Decided · direction set</td></tr>
+      <tr><td class="dim">D2</td><td>Knowledge retrieval</td><td>Azure AI Search (managed); retire the self-hosted stack</td><td>Proposed</td></tr>
+      <tr><td class="dim">D3</td><td>Prompt-injection defence</td><td>Prompt Shields (managed); keep separators as defence-in-depth</td><td>Proposed</td></tr>
+      <tr><td class="dim">D4</td><td>Per-task model routing</td><td>Model Router on the managed model path, with a thin config layer above it</td><td>Active · D1 set the path</td></tr>
+      <tr><td class="dim">D5</td><td>Memory ownership</td><td>We own the governed MEMORY tier; don't adopt managed memory as system of record</td><td>Proposed</td></tr>
+      <tr><td class="dim">D6</td><td>Dependency on preview features</td><td>GA-only for launch-critical paths; preview = later, with a fallback</td><td>Proposed</td></tr>
+    </tbody>
+  </table>
+
+  <div class="dcard" style="border-left-color:var(--success)">
+    <div class="did">Decision D1 — the gating decision</div>
+    <h3>Model provider &amp; data residency</h3>
+    <div class="chips"><span class="chip" style="color:var(--success);border-color:rgba(15,123,92,0.35);background:rgba(15,123,92,0.07)">Decided · direction set</span><span class="chip hard">Hard constraint · T17</span><span class="chip">Activates D4</span></div>
+    <p class="opt"><b>Context.</b> The design is provider-agnostic with no fixed model (T15), and the stakeholder briefing sells &ldquo;not locked in&rdquo;. T17 makes Australian residency non-negotiable for student data. Today, some managed-catalogue models run only in US / EU regions and some need Enterprise/MCA-E — so unrestricted model choice + residency + the managed runtime cannot all hold (§5).</p>
+    <p class="opt"><b>Option A — self-managed runtime, any model via a sovereign endpoint (e.g. Bedrock Sydney), keep <code>LLMClient</code>.</b> <span class="ok">Viable.</span> Preserves unrestricted model freedom, provider-agnosticism and residency. We own the orchestrator and retrieval. Forgoes Foundry-managed runtime, IQ and Model Router.</p>
+    <p class="opt"><b>Option B — managed runtime on Foundry, in-region catalogue (Australia East).</b> <span class="ok">Viable.</span> Gains managed runtime, Model Router, Foundry IQ, integrated Prompt Shields. Narrows model choice to the in-region catalogue (re-scopes provider-agnosticism); requires confirming the in-region model retirement successor (Finding 2).</p>
+    <p class="opt"><b>Option C — an out-of-region-only catalogue model on the managed runtime.</b> <span class="x">Rejected.</span> US / EU regions only → breaks T17 for student data.</p>
+    <div class="rec"><strong>Decision taken — fully-managed runtime, configurable models (refined Option B).</strong> Adopt <strong>Foundry Agent Service in Australia East</strong> as the runtime. Keep <strong>models configurable</strong> as a first-class config concern — multiple model deployments selected per task/pattern, with Model Router (D4) for cost/quality — so model choice stays config, not code; no model is named in code. <strong>T15 is re-scoped, not reversed:</strong> portability narrows from cross-cloud to within the Foundry catalogue; record this re-scope explicitly. <strong>Residency caveat on record:</strong> under AU-East residency the configurable set at launch is whatever the managed platform offers in-region — an out-of-region-only model would be a side path via a sovereign endpoint (e.g. Sydney) <em>outside</em> the managed runtime (Option C stays rejected, T17). <strong>Action:</strong> confirm the in-region model retirement successor (3 June) before it becomes the baseline. Revisit out-of-region models if/when they reach Australia East.</div>
+  </div>
+
+  <div class="dcard" style="border-left-color:var(--blue)">
+    <div class="did">Decision D2</div>
+    <h3>Knowledge retrieval — managed vs self-hosted</h3>
+    <div class="chips"><span class="chip proposed">Proposed</span><span class="chip">Biggest duplication</span><span class="chip">GA · AU East</span></div>
+    <p class="opt"><b>Context.</b> The reference design self-hosts Docling + LlamaIndex + pgvector + ParadeDB BM25 + BGE reranker. Azure AI Search (GA, Australia East) provides vector + hybrid + semantic ranking as a managed service; Foundry IQ (preview) adds agentic retrieval over it.</p>
+    <p class="opt"><b>Trade-off.</b> Self-host gives provider-neutrality and finer control of chunking/rerank; managed removes the most operationally heavy subsystem we'd otherwise run (embedding jobs, index maintenance, reranker hosting, scaling).</p>
+    <div class="rec"><strong>Recommended: Azure AI Search as the default retrieval layer.</strong> Retire the self-hosted pipeline unless a measured retrieval-quality gap justifies keeping it. Adoptable regardless of D1. Hold Foundry IQ as a &ldquo;later&rdquo; enhancement (preview).</div>
+  </div>
+
+  <div class="dcard" style="border-left-color:var(--blue)">
+    <div class="did">Decision D3</div>
+    <h3>Prompt-injection defence — Prompt Shields vs custom</h3>
+    <div class="chips"><span class="chip proposed">Proposed</span><span class="chip">GA</span></div>
+    <p class="opt"><b>Context.</b> SEC6/SEC7 specify custom canary tokens + content validation + provenance. Prompt Shields (GA) covers both direct jailbreak and indirect / cross-prompt (XPIA) injection from retrieved content — exactly our two threat vectors.</p>
+    <div class="rec"><strong>Recommended: adopt Prompt Shields as the primary control.</strong> Keep structural separators in the system prompt as defence-in-depth; retire the bespoke canary/validation as the load-bearing mechanism. Adoptable regardless of D1.</div>
+  </div>
+
+  <div class="dcard" style="border-left-color:var(--blue)">
+    <div class="did">Decision D4</div>
+    <h3>Per-task model routing — Model Router vs hand-rolled selector</h3>
+    <div class="chips"><span class="chip" style="color:var(--success);border-color:rgba(15,123,92,0.35);background:rgba(15,123,92,0.07)">Active · D1 set the path</span><span class="chip">GA for core models</span></div>
+    <p class="opt"><b>Context.</b> T16 hand-rolls per-task model assignment (cheap model to classify, stronger to answer). Model Router (GA for the platform's core models) does this as a managed classifier with Cost/Quality/Balanced modes and failover. D1 put us on the managed model path, so Model Router is the natural mechanism for &ldquo;configurable models.&rdquo;</p>
+    <div class="rec"><strong>Adopt Model Router</strong> as the per-task selection mechanism — its Cost/Quality/Balanced modes replace the hand-rolled T16 selector. Keep a thin per-pattern model-selection config above it so model choice stays explicit, auditable, and portable as the in-region catalogue expands. This is how &ldquo;fully managed&rdquo; and &ldquo;models configurable&rdquo; coexist.</div>
+  </div>
+
+  <div class="dcard" style="border-left-color:var(--amber)">
+    <div class="did">Decision D5</div>
+    <h3>Memory ownership — our governed tier vs Foundry managed memory</h3>
+    <div class="chips"><span class="chip proposed">Proposed</span><span class="chip">Resolves an open edge</span></div>
+    <p class="opt"><b>Context.</b> The alignment review left &ldquo;memory ownership overlap&rdquo; unresolved — two layers both want to manage memory. Foundry now offers managed threads (GA) and a long-term per-user memory tool (preview). Our tier is bounded (~800 tok), sanitised on write, RLS-enforced, and residency-controlled.</p>
+    <p class="opt"><b>Trade-off.</b> Managed memory removes a store we maintain; our tier guarantees sanitisation, bounding, residency and a single source of truth the analytics log depends on.</p>
+    <div class="rec"><strong>Recommended: we own memory as the system of record.</strong> Use managed threads for in-session state if on Agent Service, but keep the governed MEMORY tier authoritative. Managed long-term memory is preview anyway — revisit at GA as a possible simplification.</div>
+  </div>
+
+  <div class="dcard" style="border-left-color:var(--amber)">
+    <div class="did">Decision D6</div>
+    <h3>Dependency on preview features</h3>
+    <div class="chips"><span class="chip proposed">Proposed</span><span class="chip">Policy</span></div>
+    <p class="opt"><b>Context.</b> The merged architecture leans on Foundry IQ, long-term memory, multi-agent orchestration and wider-catalogue model routing — all preview.</p>
+    <div class="rec"><strong>Recommended policy: launch-critical paths depend only on GA features.</strong> Preview features are designed toward and shipped as &ldquo;later / follow-up&rdquo; enhancements, each with a GA fallback. No preview feature sits on the safety, residency or write paths at launch.</div>
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>7. Recommended path — one slide</h2>
+  <div class="callout green">
+    <ul class="tight" style="margin:4px 0;">
+      <li><strong>Adopt the GA managed components now</strong> — Azure AI Search (D2), Prompt Shields (D3), Content Safety severity (seeds the distress classifier). All AU-East-safe, all cut real duplication, all independent of the runtime fork.</li>
+      <li><strong>Keep building our differentiators</strong> — pattern-classification logic, the distress / Express held-state path, the skills library, SAP PO action middleware, the pattern-tagged analytics log. No managed equivalent.</li>
+      <li><strong>D1 decided — fully-managed Foundry runtime (AU East), models configurable</strong> via the catalogue + Model Router (D4). In-region catalogue at launch, no model fixed in code; T15 re-scoped from cross-cloud to within-catalogue (record the re-scope); out-of-region models return to scope only if they reach AU East, else as a sovereign-endpoint side path. Confirm the in-region model retirement successor (3 June).</li>
+      <li><strong>We own memory</strong> (D5); <strong>preview stays off launch-critical paths</strong> (D6).</li>
+      <li><strong>Correct the alignment review</strong> on two points: Model Router / connected-agents now exist (the &ldquo;Foundry can't route&rdquo; premise is partly outdated), and &ldquo;residency met via a managed in-region endpoint&rdquo; silently forecloses unrestricted model freedom.</li>
+    </ul>
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>Sources — verified May 2026</h2>
+  <ul class="refs">
+    <li>Foundry Agent Service overview &amp; GA; handoff / connected-agent orchestration (preview) — learn.microsoft.com/azure/foundry/agents/overview · agent-framework/workflows/orchestrations/handoff</li>
+    <li>Model Router (GA for core models; Cost/Quality/Balanced; wider-catalogue targets preview) — learn.microsoft.com/azure/foundry/openai/concepts/model-router</li>
+    <li>Foundry IQ (agentic retrieval, public preview, Ignite Nov 2025) — techcommunity.microsoft.com/blog/azure-ai-foundry-blog</li>
+    <li>Memory in Foundry Agent Service (long-term, preview) — learn.microsoft.com/azure/foundry/agents/concepts/what-is-memory</li>
+    <li>Content Safety + Prompt Shields (GA; groundedness/task-adherence preview) — learn.microsoft.com/azure/ai-services/content-safety/whats-new</li>
+    <li>Partner / community models in Microsoft Foundry — regional availability &amp; licensing (preview; East US 2 / Sweden Central; Enterprise/MCA-E) — learn.microsoft.com/azure/foundry/foundry-models/concepts/models-from-partners</li>
+    <li>Foundry region support (Australia East) &amp; Provisioned Throughput; in-region model retirement 3 Jun 2026 — learn.microsoft.com/azure/foundry/reference/region-support · openai/concepts/provisioned-throughput</li>
+    <li>Azure AI Search hybrid + semantic ranking (GA) — learn.microsoft.com/azure/search/hybrid-search-overview</li>
+  </ul>
+
+  <footer class="foot">
+    La Trobe assistant · build-vs-buy review against the managed Microsoft components &amp; decisions to present ·
+    companion to <code>infrastructure.html</code> and <code>managed-foundry-alignment-review.html</code> · capability claims verified against Microsoft Learn, May 2026
+  </footer>
+</div>
+</body>
+</html>

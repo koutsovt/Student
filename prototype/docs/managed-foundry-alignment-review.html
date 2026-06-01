@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Managed Foundry diagram · alignment review &amp; merged architecture · La Trobe assistant</title>
+  <style>
+    :root {
+      --ltu-red:#C8102E;
+      --ltu-navy:#1F2A44;
+      --surface:#FFFFFF;
+      --surface-soft:#F5F7FA;
+      --border:#E5E7EB;
+      --muted:#6B7280;
+      --success:#0F7B5C;
+      --amber:#B45309;
+      --purple:#5B21B6;
+    }
+    * { box-sizing:border-box; }
+    html, body {
+      margin:0; padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+      color:var(--ltu-navy);
+      font-size:14px; line-height:1.55;
+      background:var(--surface);
+    }
+    .container { max-width:1180px; margin:0 auto; padding:0 24px 80px; }
+    header.cover { border-bottom:3px solid var(--ltu-red); padding:32px 0 18px; margin-bottom:26px; }
+    .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.20em; text-transform:uppercase; color:var(--ltu-red); }
+    h1 { font-size:29px; margin:6px 0 8px; line-height:1.15; }
+    .lead { max-width:880px; color:rgba(31,42,68,0.85); font-size:15px; }
+    .meta { font-size:12px; color:var(--muted); margin-top:8px; }
+
+    h2 { font-size:19px; margin:38px 0 6px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+    h3 { font-size:15px; margin:22px 0 6px; }
+    .section-lead { font-size:13px; color:rgba(31,42,68,0.78); margin:0 0 12px; }
+
+    table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+    th { text-align:left; font-size:10px; font-weight:700; letter-spacing:0.10em; text-transform:uppercase; color:var(--muted); padding:6px 10px; border-bottom:2px solid var(--border); background:var(--surface-soft); vertical-align:bottom; }
+    td { padding:8px 10px; vertical-align:top; border-bottom:1px solid var(--border); color:rgba(31,42,68,0.88); }
+    td.dim { font-weight:700; color:var(--ltu-navy); width:18%; }
+    tr:hover td { background:rgba(245,247,250,0.5); }
+
+    code { font-family:'SF Mono',Menlo,monospace; font-size:12px; background:var(--surface-soft); padding:1px 5px; border-radius:3px; }
+
+    .callout { background:var(--surface-soft); border-left:3px solid var(--ltu-navy); padding:10px 14px; margin:14px 0; font-size:13px; border-radius:0 6px 6px 0; }
+    .callout.red { border-left-color:var(--ltu-red); background:rgba(200,16,46,0.04); }
+    .callout.green { border-left-color:var(--success); background:rgba(15,123,92,0.06); }
+    .callout.amber { border-left-color:var(--amber); background:rgba(180,83,9,0.06); }
+    .callout strong { color:var(--ltu-navy); }
+
+    ul.tight { margin:6px 0 14px; padding-left:20px; }
+    ul.tight li { margin-bottom:5px; }
+
+    .verdict { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin:18px 0 8px; }
+    .vcard { border:1px solid var(--border); border-radius:8px; padding:12px 14px; background:#fff; }
+    .vcard .label { font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+    .vcard .body { font-size:13px; margin-top:4px; }
+    .vcard.keep { border-top:3px solid var(--success); }
+    .vcard.gap { border-top:3px solid var(--ltu-red); }
+    .vcard.borrow { border-top:3px solid var(--amber); }
+
+    svg { display:block; width:100%; height:auto; border:1px solid var(--border); border-radius:14px; background:#fff; margin:16px 0; }
+    .legend { display:flex; flex-wrap:wrap; gap:14px; margin:14px 0; font-size:12px; color:#334155; }
+    .key { display:inline-flex; align-items:center; gap:6px; }
+    .sw { width:16px; height:12px; border-radius:3px; display:inline-block; border:1.5px solid currentColor; }
+
+    .t-title { font-size:12.5px; font-weight:800; }
+    .t-sub { font-size:10px; }
+    .t-small { font-size:9px; }
+    .t-tiny { font-size:8px; }
+    .sec { font-size:12px; font-weight:800; letter-spacing:.04em; }
+
+    footer.foot { margin-top:54px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header class="cover">
+    <div class="eyebrow">La Trobe assistant · review of the managed-Foundry infrastructure proposal</div>
+    <h1>Managed-Foundry diagram: alignment review &amp; merged architecture</h1>
+    <p class="lead">
+      How the merged architecture was reached. The managed-Foundry infrastructure diagram was read against our
+      reference design (<code>infrastructure.html</code>): the managed-first framing was sound and kept, but as drawn it
+      dropped the intent-assessment tier that is the whole point of replacing Charlie. The merge keeps the Foundry
+      managed layer and restores our differentiators in front of it. The runtime/provider questions this raised are
+      now settled in <strong>D1&ndash;D6</strong> &mdash; this note records the merged design; the rationale lives in the
+      decisions log and the build-vs-buy review.
+    </p>
+    <p class="meta">Solution-architecture review · reflects D1&ndash;D6 · companion to <code>infrastructure.html</code>, <code>decisions-and-rationale.html</code>, <code>duplication-buy-vs-build-review.html</code></p>
+  </header>
+
+  <!-- =========================================================== -->
+  <h2>1. Verdict</h2>
+  <div class="verdict">
+    <div class="vcard keep">
+      <div class="label">Built ourselves</div>
+      <div class="body">The classifier and six-pattern routing, the skills library, the distress/Express held-state path, the personalisation tier, the pattern-tagged analytics, and the MCP&nbsp;&rarr;&nbsp;SAP&nbsp;PO action middleware. No managed equivalent.</div>
+    </div>
+    <div class="vcard borrow">
+      <div class="label">Bought (now managed)</div>
+      <div class="body">Foundry Agent Service (D1), Azure AI Search (D2), Prompt Shields (D3) and Model Router (D4) &mdash; all GA, in AU East. Plus the Admin Console, Tool Registry UI and named ingestion sources.</div>
+    </div>
+    <div class="vcard gap">
+      <div class="label">Consciously traded</div>
+      <div class="body">Cross-cloud &ldquo;any model&rdquo; freedom, narrowed to the in-region Foundry catalogue (D1). Recorded, not silent &mdash; T15 re-scoped, not reversed.</div>
+    </div>
+  </div>
+  <div class="callout red">
+    <strong>Why the Pattern Router stays ours:</strong> the Foundry diagram ran one generic agent with no
+    classifier, so every request took the same retrieve-and-answer path regardless of what the student wanted
+    &mdash; that is Charlie's purpose-blindness. So the classify-before-retrieval tier sits in front of Foundry,
+    built by us. (Model-level routing is now managed via Model Router (D4); the <em>intent</em> classification
+    logic is what has no managed equivalent &mdash; and it is the business case.)
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>2. Findings — dimension by dimension</h2>
+  <p class="section-lead">Each row maps an evaluation dimension to how the Foundry diagram handles it today, what our reference design does, and how the merge below reconciles the two.</p>
+  <table>
+    <thead><tr><th>Dimension</th><th>Foundry diagram as-is</th><th>Our reference design</th><th>Merge resolution</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="dim">Assessing user requests (patterns)</td>
+        <td>None. One generic agent; no intent step.</td>
+        <td>Classifier → <code>{pattern·topic·purpose·risk}</code> → one of six patterns (Inform-and-Act · Status-Check · Decide · Express · Nudge · Check-in).</td>
+        <td>A <strong>Pattern Router</strong> in the gateway classifies <em>before</em> calling Foundry, then configures the agent per turn. Intent classification stays ours; model-level routing is managed (Model Router, D4).</td>
+      </tr>
+      <tr>
+        <td class="dim">Skills</td>
+        <td>Absent — collapsed into a single "Instructions" field.</td>
+        <td>Per-pattern prompt library, git-versioned, A/B via revisions (PR3 · PR5 · PR6).</td>
+        <td>A <strong>Skills &amp; pattern-prompt library</strong> feeds the selected skill into the Foundry Agent Service as its per-turn instructions.</td>
+      </tr>
+      <tr>
+        <td class="dim">Safety / distress (Express)</td>
+        <td>Reduced to a wellbeing tool call (Einstein Bot / RightNow). No held state, no review queue.</td>
+        <td>Distress classifier → distress-hold state → locked composer → two-tier review queue; DLP + injection defence.</td>
+        <td>Distress classifier in the router (first-pass severity seeded by Content Safety, D3); <code>ltu-wellbeing-mcp</code> + Redis hold state drive the in-channel advisor join. The held-state / review-queue flow stays ours.</td>
+      </tr>
+      <tr>
+        <td class="dim">Personalisation</td>
+        <td>Thin — "governed memory" + a Foundry memory-recall box.</td>
+        <td>USER profile + bounded MEMORY (~800 tok, sanitised) + conversation history + pattern-tagged log.</td>
+        <td>Expanded <strong>Data, memory &amp; personalisation</strong> tier; pattern tags restored by the classifier. We own MEMORY as the system of record (D5), not Foundry managed memory.</td>
+      </tr>
+      <tr>
+        <td class="dim">Scalability</td>
+        <td>Silent. Shows Container Apps but no scaling behaviour.</td>
+        <td>KEDA autoscale · scale-to-zero · 5–10× census/deadline waves · Postgres vCore scaling · PgBouncer.</td>
+        <td>Scale annotations on compute + data; <strong>new caveat:</strong> watch Foundry model PTU/quota at census peaks.</td>
+      </tr>
+      <tr>
+        <td class="dim">Provider choice</td>
+        <td>Limited to the Foundry Model Catalog (managed-catalogue models only).</td>
+        <td>Provider-agnostic <code>LLMClient</code> (T15); per-task model assignment (T16).</td>
+        <td>Managed Foundry runtime; models configurable within the in-region catalogue via Model Router (D4), no model named in code. T15 re-scoped, not reversed.</td>
+      </tr>
+      <tr>
+        <td class="dim">Actions middleware</td>
+        <td>Actions MCP → SIS directly.</td>
+        <td>Five Action APIs route through SAP PO (T18).</td>
+        <td><code>ltu-actions-mcp</code> → <strong>SAP PO</strong> → SIS, with confirmation + idempotency + audit.</td>
+      </tr>
+      <tr>
+        <td class="dim">Population analytics</td>
+        <td>Generic App Insights / Log Analytics.</td>
+        <td>Pattern-tagged conversation log → cohort analytics ("32% of SSAF queries were deferral-purpose").</td>
+        <td>Tags reappear automatically once the classifier emits pattern · topic · purpose per turn.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout green">
+    <strong>Architectural insight behind the merge.</strong> In a Foundry-managed world the classifier doesn't
+    disappear — it moves <em>in front</em> of Foundry. Our gateway becomes a <strong>Pattern Router</strong> that
+    (1) classifies the turn, (2) selects the matching skill prompt and the per-task model, and (3) invokes the
+    Foundry Agent Service configured for that turn. Foundry runs the agent and grounding; we own the
+    intent-assessment, safety, personalisation, and tool tiers around it.
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>3. Merged architecture</h2>
+  <p class="section-lead">Foundry managed AI runtime in the centre; our pattern-assessment tier in front of it; our tools, data/personalisation, and ingestion around it. Boxes outlined in <strong style="color:var(--ltu-red)">La Trobe red</strong> are the differentiators re-inserted from our reference design.</p>
+
+  <div class="legend">
+    <span class="key" style="color:#5B21B6"><span class="sw" style="background:#EDE9FE"></span>Inside Azure AI Foundry (managed AI)</span>
+    <span class="key" style="color:#1D4ED8"><span class="sw" style="background:#DBEAFE"></span>Azure managed platform</span>
+    <span class="key" style="color:#059669"><span class="sw" style="background:#D1FAE5"></span>We build</span>
+    <span class="key" style="color:#BE123C"><span class="sw" style="background:#FFE4E6"></span>Data / private stores</span>
+    <span class="key" style="color:#B45309"><span class="sw" style="background:#FEF3C7"></span>University / external systems</span>
+    <span class="key" style="color:#C8102E"><span class="sw" style="border-style:dashed;background:#fff"></span>★ Re-inserted from our solution</span>
+  </div>
+
+  <svg viewBox="0 0 1460 1110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Merged La Trobe assistant architecture: Azure AI Foundry managed runtime wrapped by a custom pattern-assessment tier">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L7,3 z" fill="#94A3B8"/></marker>
+      <marker id="arRed" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L7,3 z" fill="#C8102E"/></marker>
+      <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#0f172a" flood-opacity="0.12"/></filter>
+    </defs>
+
+    <!-- ===== Channels ===== -->
+    <rect x="40" y="24" width="180" height="56" rx="10" fill="#F8FAFC" stroke="#1F2A44" stroke-width="1.6" filter="url(#sh)"/>
+    <text x="130" y="46" text-anchor="middle" class="t-title" fill="#1F2A44">Student / Staff</text>
+    <text x="130" y="63" text-anchor="middle" class="t-sub" fill="#475569">browser · mobile · Teams</text>
+
+    <rect x="240" y="24" width="180" height="56" rx="10" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6" filter="url(#sh)"/>
+    <text x="330" y="46" text-anchor="middle" class="t-title" fill="#1D4ED8">Azure Front Door</text>
+    <text x="330" y="63" text-anchor="middle" class="t-sub" fill="#1E40AF">CDN · WAF · TLS</text>
+
+    <rect x="440" y="24" width="195" height="56" rx="10" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6" filter="url(#sh)"/>
+    <text x="537" y="46" text-anchor="middle" class="t-title" fill="#1D4ED8">API Management</text>
+    <text x="537" y="63" text-anchor="middle" class="t-sub" fill="#1E40AF">auth · throttling · policy</text>
+
+    <rect x="655" y="24" width="170" height="56" rx="10" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6" filter="url(#sh)"/>
+    <text x="740" y="46" text-anchor="middle" class="t-title" fill="#1D4ED8">Entra ID</text>
+    <text x="740" y="63" text-anchor="middle" class="t-sub" fill="#1E40AF">SSO · MFA · student_id</text>
+
+    <!-- ===== LEFT: build / pattern control ===== -->
+    <rect x="30" y="110" width="345" height="455" rx="16" fill="#F0FDF4" stroke="#059669" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="50" y="134" class="sec" fill="#047857">WE BUILD · CHANNEL &amp; PATTERN CONTROL</text>
+
+    <rect x="50" y="148" width="305" height="80" rx="11" fill="#D1FAE5" stroke="#059669" stroke-width="1.6" filter="url(#sh)"/>
+    <text x="202" y="170" text-anchor="middle" class="t-title" fill="#047857">Custom Web App</text>
+    <text x="202" y="187" text-anchor="middle" class="t-sub" fill="#065F46">React · streaming · attachments · feedback</text>
+    <text x="202" y="203" text-anchor="middle" class="t-sub" fill="#065F46">Express held-state UI (composer lock)</text>
+    <text x="202" y="219" text-anchor="middle" class="t-tiny" fill="#047857">Static Web Apps / App Service</text>
+
+    <!-- Pattern Router HERO (red highlight) -->
+    <rect x="50" y="238" width="305" height="262" rx="11" fill="#D1FAE5" stroke="#C8102E" stroke-width="2.4" filter="url(#sh)"/>
+    <text x="202" y="259" text-anchor="middle" class="t-title" fill="#9F1239">★ Agent Gateway · Pattern Router (BFF)</text>
+    <text x="202" y="274" text-anchor="middle" class="t-tiny" fill="#C8102E">the intent-assessment tier Foundry does not provide</text>
+
+    <rect x="62" y="284" width="281" height="34" rx="6" fill="#FFFFFF" stroke="#059669" stroke-width="1"/>
+    <text x="202" y="298" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">① Pattern classifier → {pattern·topic·purpose·risk}</text>
+    <text x="202" y="311" text-anchor="middle" class="t-tiny" fill="#065F46">6 patterns · classify BEFORE retrieval</text>
+
+    <rect x="62" y="324" width="281" height="32" rx="6" fill="#FFFFFF" stroke="#059669" stroke-width="1"/>
+    <text x="202" y="338" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">② Risk / distress classifier</text>
+    <text x="202" y="350" text-anchor="middle" class="t-tiny" fill="#065F46">drives Express routing + distress hold</text>
+
+    <rect x="62" y="362" width="281" height="32" rx="6" fill="#FFFFFF" stroke="#059669" stroke-width="1"/>
+    <text x="202" y="376" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">③ Skill selector + per-task model selector</text>
+    <text x="202" y="388" text-anchor="middle" class="t-tiny" fill="#065F46">configures Foundry agent per turn (T16)</text>
+
+    <rect x="62" y="400" width="281" height="32" rx="6" fill="#FFFFFF" stroke="#059669" stroke-width="1"/>
+    <text x="202" y="414" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">④ Claims→student_id · audit · budgets</text>
+    <text x="202" y="426" text-anchor="middle" class="t-tiny" fill="#065F46">memory read/write governance · cost caps</text>
+
+    <text x="202" y="452" text-anchor="middle" class="t-tiny" fill="#C8102E">Fixes Charlie's purpose-blindness: route to a typed handler</text>
+    <text x="202" y="466" text-anchor="middle" class="t-tiny" fill="#047857" font-style="italic">Container Apps · KEDA autoscale · scale-to-zero</text>
+    <text x="202" y="480" text-anchor="middle" class="t-tiny" fill="#047857" font-style="italic">scales 5–10× on census / deadline waves</text>
+
+    <rect x="50" y="510" width="305" height="46" rx="10" fill="#D1FAE5" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="202" y="531" text-anchor="middle" class="t-title" fill="#047857">Admin Console</text>
+    <text x="202" y="547" text-anchor="middle" class="t-sub" fill="#065F46">knowledge · skills · prompts · approvals · audit</text>
+
+    <!-- ===== CENTER: Foundry managed ===== -->
+    <rect x="390" y="110" width="650" height="455" rx="16" fill="#FBFAFF" stroke="#6D28D9" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="410" y="134" class="sec" fill="#6D28D9">INSIDE AZURE AI FOUNDRY · MANAGED AI RUNTIME</text>
+
+    <rect x="415" y="150" width="288" height="158" rx="12" fill="#EDE9FE" stroke="#6D28D9" stroke-width="2" filter="url(#sh)"/>
+    <text x="559" y="173" text-anchor="middle" class="t-title" fill="#6D28D9">Foundry Agent Service</text>
+    <text x="559" y="191" text-anchor="middle" class="t-sub" fill="#5B21B6">Hosted agent runtime · tool calling</text>
+    <text x="559" y="208" text-anchor="middle" class="t-sub" fill="#5B21B6">Conversation threads / runs</text>
+    <text x="559" y="232" text-anchor="middle" class="t-small" fill="#C8102E" font-weight="700">configured per turn by the Pattern Router</text>
+    <text x="559" y="247" text-anchor="middle" class="t-tiny" fill="#5B21B6">← receives selected skill prompt + model</text>
+    <text x="559" y="266" text-anchor="middle" class="t-tiny" fill="#6D28D9" font-style="italic">runs the agent; does not assess intent itself</text>
+    <text x="559" y="285" text-anchor="middle" class="t-tiny" fill="#6D28D9">model + tools chosen upstream per pattern</text>
+
+    <rect x="725" y="150" width="295" height="158" rx="12" fill="#EDE9FE" stroke="#6D28D9" stroke-width="2" filter="url(#sh)"/>
+    <text x="872" y="173" text-anchor="middle" class="t-title" fill="#6D28D9">Foundry IQ</text>
+    <text x="872" y="191" text-anchor="middle" class="t-sub" fill="#5B21B6">Managed knowledge grounding</text>
+    <text x="872" y="208" text-anchor="middle" class="t-sub" fill="#5B21B6">Citations · connected knowledge</text>
+    <text x="872" y="225" text-anchor="middle" class="t-sub" fill="#5B21B6">Agent-facing retrieval interface</text>
+    <text x="872" y="247" text-anchor="middle" class="t-tiny" fill="#6D28D9" font-style="italic">managed retrieval option (borrowed)</text>
+    <text x="872" y="262" text-anchor="middle" class="t-tiny" fill="#B45309" font-weight="700">preview → follow-up (D6)</text>
+    <text x="872" y="277" text-anchor="middle" class="t-tiny" fill="#6D28D9">GA default today: Azure AI Search</text>
+
+    <rect x="415" y="325" width="288" height="130" rx="12" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.8" filter="url(#sh)"/>
+    <text x="559" y="348" text-anchor="middle" class="t-title" fill="#6D28D9">Model Catalog / Deployments</text>
+    <text x="559" y="366" text-anchor="middle" class="t-sub" fill="#5B21B6">Catalogue models · model routing</text>
+    <text x="559" y="383" text-anchor="middle" class="t-sub" fill="#5B21B6">eval · tracing · content safety</text>
+    <text x="559" y="404" text-anchor="middle" class="t-tiny" fill="#C8102E" font-weight="700">scale lever: PTU / quota at census peaks</text>
+    <text x="559" y="418" text-anchor="middle" class="t-tiny" fill="#6D28D9">residency: managed model endpoint, Azure AU East</text>
+    <text x="559" y="438" text-anchor="middle" class="t-tiny" fill="#6D28D9" font-style="italic">trade-off: less provider-agnostic than LLMClient (T15)</text>
+
+    <rect x="725" y="325" width="295" height="130" rx="12" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.8" filter="url(#sh)"/>
+    <text x="872" y="348" text-anchor="middle" class="t-title" fill="#1D4ED8">Azure AI Search</text>
+    <text x="872" y="366" text-anchor="middle" class="t-sub" fill="#1E40AF">indexes · vectors · hybrid + semantic</text>
+    <text x="872" y="383" text-anchor="middle" class="t-sub" fill="#1E40AF">replaces self-host pgvector / rerank</text>
+    <text x="872" y="403" text-anchor="middle" class="t-tiny" fill="#1D4ED8">(unless custom retrieval quality is needed)</text>
+
+    <text x="715" y="488" text-anchor="middle" class="t-tiny" fill="#5B21B6" font-style="italic">Managed runtime + grounding. Our pattern tier sits in front; our tools, data &amp; ingestion sit around it.</text>
+
+    <!-- ===== RIGHT: tools & action services ===== -->
+    <rect x="1080" y="110" width="350" height="455" rx="16" fill="#F0FDF4" stroke="#059669" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="1100" y="134" class="sec" fill="#047857">WE BUILD · TOOLS &amp; ACTION SERVICES</text>
+
+    <rect x="1098" y="150" width="314" height="80" rx="11" fill="#D1FAE5" stroke="#059669" stroke-width="1.6" filter="url(#sh)"/>
+    <text x="1255" y="172" text-anchor="middle" class="t-title" fill="#047857">ltu-records-mcp</text>
+    <text x="1255" y="189" text-anchor="middle" class="t-sub" fill="#065F46">records_lookup · check_eligibility</text>
+    <text x="1255" y="206" text-anchor="middle" class="t-tiny" fill="#047857">→ SAP PO → SIS read path · read-only</text>
+    <text x="1255" y="221" text-anchor="middle" class="t-tiny" fill="#065F46">Status-Check &amp; Decide eligibility</text>
+
+    <rect x="1098" y="240" width="314" height="92" rx="11" fill="#D1FAE5" stroke="#C8102E" stroke-width="2.2" filter="url(#sh)"/>
+    <text x="1255" y="262" text-anchor="middle" class="t-title" fill="#9F1239">★ ltu-actions-mcp</text>
+    <text x="1255" y="279" text-anchor="middle" class="t-sub" fill="#065F46">lodge_action: defer · withdraw · transfer ·</text>
+    <text x="1255" y="294" text-anchor="middle" class="t-sub" fill="#065F46">change-load · special-consideration</text>
+    <text x="1255" y="311" text-anchor="middle" class="t-tiny" fill="#C8102E" font-weight="700">→ SAP PO (T18) · confirm + idempotency + audit</text>
+    <text x="1255" y="325" text-anchor="middle" class="t-tiny" fill="#065F46">Decide pattern write path</text>
+
+    <rect x="1098" y="342" width="314" height="92" rx="11" fill="#D1FAE5" stroke="#C8102E" stroke-width="2.2" filter="url(#sh)"/>
+    <text x="1255" y="364" text-anchor="middle" class="t-title" fill="#9F1239">★ ltu-wellbeing-mcp</text>
+    <text x="1255" y="381" text-anchor="middle" class="t-sub" fill="#065F46">request_advisor_handoff · log_distress_signal</text>
+    <text x="1255" y="398" text-anchor="middle" class="t-tiny" fill="#047857">→ contact-centre · Redis hold · in-channel join</text>
+    <text x="1255" y="414" text-anchor="middle" class="t-tiny" fill="#C8102E" font-weight="700">Express path · highest stakes · held state</text>
+    <text x="1255" y="428" text-anchor="middle" class="t-tiny" fill="#065F46">student never re-explains</text>
+
+    <rect x="1098" y="444" width="314" height="60" rx="10" fill="#D1FAE5" stroke="#059669" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="1255" y="466" text-anchor="middle" class="t-title" fill="#047857">Tool Registry UI</text>
+    <text x="1255" y="483" text-anchor="middle" class="t-sub" fill="#065F46">schemas · permissions · test console</text>
+    <text x="1255" y="498" text-anchor="middle" class="t-tiny" fill="#047857">borrowed from the Foundry proposal</text>
+
+    <!-- ===== Skills band ===== -->
+    <rect x="30" y="582" width="1010" height="92" rx="14" fill="#F0FDF4" stroke="#C8102E" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="50" y="606" class="sec" fill="#9F1239">★ WE BUILD · SKILLS &amp; PATTERN-PROMPT LIBRARY · git-versioned (PR3 · PR5 · PR6)</text>
+
+    <rect x="50" y="618" width="225" height="44" rx="8" fill="#D1FAE5" stroke="#059669" stroke-width="1.4"/>
+    <text x="162" y="638" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">System prompt</text>
+    <text x="162" y="652" text-anchor="middle" class="t-tiny" fill="#065F46">brand · safety · identity · distress override</text>
+
+    <rect x="288" y="618" width="235" height="44" rx="8" fill="#D1FAE5" stroke="#059669" stroke-width="1.4"/>
+    <text x="405" y="638" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">Classifier prompts</text>
+    <text x="405" y="652" text-anchor="middle" class="t-tiny" fill="#065F46">intent + risk · typed JSON · fast model</text>
+
+    <rect x="536" y="618" width="245" height="44" rx="8" fill="#FFFFFF" stroke="#C8102E" stroke-width="2"/>
+    <text x="658" y="632" text-anchor="middle" class="t-small" font-weight="700" fill="#9F1239">Skill prompts · per pattern</text>
+    <text x="658" y="645" text-anchor="middle" class="t-tiny" fill="#9F1239">Inform-and-Act · Status-Check · Decide · Express</text>
+    <text x="658" y="657" text-anchor="middle" class="t-tiny" fill="#9F1239">4 reactive at launch · Nudge + Check-in follow-up</text>
+
+    <rect x="794" y="618" width="230" height="44" rx="8" fill="#D1FAE5" stroke="#059669" stroke-width="1.4"/>
+    <text x="909" y="638" text-anchor="middle" class="t-small" font-weight="700" fill="#065F46">Scenario eval fixtures</text>
+    <text x="909" y="652" text-anchor="middle" class="t-tiny" fill="#065F46">A/B via Container Apps revisions</text>
+
+    <!-- ===== Lower-left: Azure managed platform ===== -->
+    <rect x="30" y="690" width="650" height="228" rx="16" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="50" y="714" class="sec" fill="#1D4ED8">INSIDE AZURE MANAGED PLATFORM SERVICES</text>
+
+    <rect x="48" y="726" width="145" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4" filter="url(#sh)"/>
+    <text x="120" y="749" text-anchor="middle" class="t-title" fill="#1D4ED8">Key Vault</text>
+    <text x="120" y="766" text-anchor="middle" class="t-sub" fill="#1E40AF">secrets · certs</text>
+
+    <rect x="205" y="726" width="145" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4" filter="url(#sh)"/>
+    <text x="277" y="749" text-anchor="middle" class="t-title" fill="#1D4ED8">App Insights</text>
+    <text x="277" y="766" text-anchor="middle" class="t-sub" fill="#1E40AF">traces · metrics</text>
+
+    <rect x="362" y="726" width="145" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4" filter="url(#sh)"/>
+    <text x="434" y="749" text-anchor="middle" class="t-title" fill="#1D4ED8">Log Analytics</text>
+    <text x="434" y="766" text-anchor="middle" class="t-sub" fill="#1E40AF">KQL · alerts</text>
+
+    <rect x="519" y="726" width="145" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4" filter="url(#sh)"/>
+    <text x="591" y="749" text-anchor="middle" class="t-title" fill="#1D4ED8">ACR</text>
+    <text x="591" y="766" text-anchor="middle" class="t-sub" fill="#1E40AF">images · SBOM</text>
+
+    <rect x="48" y="796" width="200" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4" filter="url(#sh)"/>
+    <text x="148" y="819" text-anchor="middle" class="t-title" fill="#1D4ED8">Container Apps</text>
+    <text x="148" y="836" text-anchor="middle" class="t-sub" fill="#1E40AF">gateway · MCP tools · workers</text>
+
+    <rect x="260" y="796" width="195" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4" filter="url(#sh)"/>
+    <text x="357" y="819" text-anchor="middle" class="t-title" fill="#1D4ED8">Private Networking</text>
+    <text x="357" y="836" text-anchor="middle" class="t-sub" fill="#1E40AF">VNet · private endpoints</text>
+
+    <rect x="467" y="796" width="197" height="58" rx="9" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4" filter="url(#sh)"/>
+    <text x="565" y="819" text-anchor="middle" class="t-title" fill="#1D4ED8">CI/CD + IaC</text>
+    <text x="565" y="836" text-anchor="middle" class="t-sub" fill="#1E40AF">Bicep · blue/green revisions</text>
+
+    <text x="50" y="903" class="t-tiny" fill="#C8102E" font-weight="700">Scale: KEDA autoscale · scale-to-zero quiet · 5–10× census/deadline waves · Postgres vCore up at semester start</text>
+
+    <!-- ===== Lower-center: data / memory / personalisation ===== -->
+    <rect x="705" y="690" width="360" height="228" rx="16" fill="#FFF1F2" stroke="#BE123C" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="724" y="714" class="sec" fill="#BE123C">★ DATA, MEMORY &amp; PERSONALISATION</text>
+
+    <rect x="723" y="726" width="162" height="98" rx="9" fill="#FFE4E6" stroke="#BE123C" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="804" y="747" text-anchor="middle" class="t-title" fill="#BE123C">PostgreSQL</text>
+    <text x="804" y="763" text-anchor="middle" class="t-sub" fill="#9F1239">USER profile · bounded MEMORY</text>
+    <text x="804" y="778" text-anchor="middle" class="t-tiny" fill="#9F1239">(~800 tok · sanitised on write)</text>
+    <text x="804" y="794" text-anchor="middle" class="t-sub" fill="#9F1239">session log · audit · pgvector</text>
+    <text x="804" y="811" text-anchor="middle" class="t-tiny" fill="#9F1239">RLS enforced</text>
+
+    <rect x="895" y="726" width="152" height="98" rx="9" fill="#FFE4E6" stroke="#BE123C" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="971" y="747" text-anchor="middle" class="t-title" fill="#BE123C">Redis</text>
+    <text x="971" y="763" text-anchor="middle" class="t-sub" fill="#9F1239">hot per-student state</text>
+    <text x="971" y="779" text-anchor="middle" class="t-sub" fill="#9F1239">budget counters</text>
+    <text x="971" y="795" text-anchor="middle" class="t-sub" fill="#9F1239">distress hold flag</text>
+
+    <rect x="723" y="832" width="162" height="58" rx="9" fill="#FFE4E6" stroke="#BE123C" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="804" y="854" text-anchor="middle" class="t-title" fill="#BE123C">Blob Storage</text>
+    <text x="804" y="871" text-anchor="middle" class="t-sub" fill="#9F1239">corpus · audit archive</text>
+
+    <rect x="895" y="832" width="152" height="58" rx="9" fill="#FFFFFF" stroke="#C8102E" stroke-width="2"/>
+    <text x="971" y="852" text-anchor="middle" class="t-small" font-weight="700" fill="#9F1239">★ Pattern-tagged log</text>
+    <text x="971" y="866" text-anchor="middle" class="t-tiny" fill="#9F1239">pattern·topic·purpose·outcome</text>
+    <text x="971" y="879" text-anchor="middle" class="t-tiny" fill="#C8102E">→ population analytics</text>
+
+    <text x="724" y="908" class="t-tiny" fill="#C8102E" font-weight="700">The personalisation tier the stakeholder briefing is built on — restored, not assumed.</text>
+
+    <!-- ===== Lower-right: university systems via SAP PO ===== -->
+    <rect x="1085" y="690" width="345" height="228" rx="16" fill="#FFFBEB" stroke="#B45309" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="1104" y="714" class="sec" fill="#92400E">UNIVERSITY SYSTEMS · via SAP PO (T18)</text>
+
+    <rect x="1103" y="726" width="310" height="34" rx="8" fill="#FFFFFF" stroke="#C8102E" stroke-width="1.8"/>
+    <text x="1258" y="741" text-anchor="middle" class="t-small" font-weight="700" fill="#9F1239">★ SAP PO integration bus</text>
+    <text x="1258" y="754" text-anchor="middle" class="t-tiny" fill="#92400E">translation · retries · audit trail</text>
+
+    <rect x="1103" y="768" width="148" height="56" rx="9" fill="#FEF3C7" stroke="#B45309" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="1177" y="791" text-anchor="middle" class="t-title" fill="#92400E">SIS</text>
+    <text x="1177" y="808" text-anchor="middle" class="t-sub" fill="#92400E">student records</text>
+
+    <rect x="1265" y="768" width="148" height="56" rx="9" fill="#FEF3C7" stroke="#B45309" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="1339" y="791" text-anchor="middle" class="t-title" fill="#92400E">LMS</text>
+    <text x="1339" y="808" text-anchor="middle" class="t-sub" fill="#92400E">learning context</text>
+
+    <rect x="1103" y="832" width="148" height="56" rx="9" fill="#FEF3C7" stroke="#B45309" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="1177" y="855" text-anchor="middle" class="t-title" fill="#92400E">StudentOnline</text>
+    <text x="1177" y="872" text-anchor="middle" class="t-sub" fill="#92400E">portal APIs</text>
+
+    <rect x="1265" y="832" width="148" height="56" rx="9" fill="#FEF3C7" stroke="#B45309" stroke-width="1.5" filter="url(#sh)"/>
+    <text x="1339" y="855" text-anchor="middle" class="t-title" fill="#92400E">Allocate+</text>
+    <text x="1339" y="872" text-anchor="middle" class="t-sub" fill="#92400E">timetable APIs</text>
+
+    <text x="1104" y="906" class="t-tiny" fill="#92400E">Accessed only through MCP tool services</text>
+
+    <!-- ===== Ingestion strip ===== -->
+    <rect x="30" y="932" width="1400" height="150" rx="16" fill="#F0FDF4" stroke="#059669" stroke-width="2" stroke-dasharray="9,6"/>
+    <text x="50" y="956" class="sec" fill="#047857">UNIVERSITY KNOWLEDGE → INGESTION &amp; MANAGEMENT PIPELINE</text>
+
+    <rect x="48" y="972" width="252" height="68" rx="8" fill="#FEF3C7" stroke="#B45309" stroke-width="1.4"/>
+    <text x="174" y="992" text-anchor="middle" class="t-tiny" fill="#92400E">SquizzMatrix: Website + Handbook</text>
+    <text x="174" y="1008" text-anchor="middle" class="t-tiny" fill="#92400E">Oracle RightNow FAQ</text>
+    <text x="174" y="1024" text-anchor="middle" class="t-tiny" fill="#92400E">WordPress: Intranet + MyLaTrobe</text>
+
+    <rect x="312" y="972" width="170" height="68" rx="8" fill="#FEF3C7" stroke="#B45309" stroke-width="1.4"/>
+    <text x="397" y="1000" text-anchor="middle" class="t-sub" fill="#92400E">ServiceNow KB</text>
+    <text x="397" y="1017" text-anchor="middle" class="t-tiny" fill="#92400E">student-facing articles</text>
+
+    <rect x="494" y="972" width="160" height="68" rx="8" fill="#D1FAE5" stroke="#059669" stroke-width="1.4"/>
+    <text x="574" y="1000" text-anchor="middle" class="t-sub" fill="#065F46">Ingestion Jobs</text>
+    <text x="574" y="1017" text-anchor="middle" class="t-tiny" fill="#065F46">crawl · parse · normalize</text>
+
+    <rect x="666" y="972" width="160" height="68" rx="8" fill="#D1FAE5" stroke="#059669" stroke-width="1.4"/>
+    <text x="746" y="1000" text-anchor="middle" class="t-sub" fill="#065F46">Quality Pipeline</text>
+    <text x="746" y="1017" text-anchor="middle" class="t-tiny" fill="#065F46">chunk · classify · dedupe</text>
+
+    <rect x="838" y="972" width="150" height="68" rx="8" fill="#FFE4E6" stroke="#BE123C" stroke-width="1.4"/>
+    <text x="913" y="1000" text-anchor="middle" class="t-sub" fill="#9F1239">Knowledge Store</text>
+    <text x="913" y="1017" text-anchor="middle" class="t-tiny" fill="#9F1239">Blob + metadata DB</text>
+
+    <rect x="1000" y="972" width="150" height="68" rx="8" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.4"/>
+    <text x="1075" y="1000" text-anchor="middle" class="t-sub" fill="#1E40AF">Azure AI Search</text>
+    <text x="1075" y="1017" text-anchor="middle" class="t-tiny" fill="#1E40AF">indexes + vectors</text>
+
+    <rect x="1162" y="972" width="150" height="68" rx="8" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.4"/>
+    <text x="1237" y="1000" text-anchor="middle" class="t-sub" fill="#5B21B6">Foundry IQ</text>
+    <text x="1237" y="1015" text-anchor="middle" class="t-tiny" fill="#5B21B6">agent grounding</text>
+    <text x="1237" y="1028" text-anchor="middle" class="t-tiny" fill="#B45309" font-weight="700">preview · D6</text>
+
+    <!-- ===== Arrows ===== -->
+    <!-- channels chain -->
+    <g stroke="#64748B" stroke-width="1.8" fill="none" marker-end="url(#ar)">
+      <path d="M220 52 L240 52"/>
+      <path d="M420 52 L440 52"/>
+      <path d="M635 52 L655 52" stroke-dasharray="5,4"/>
+      <path d="M537 80 C470 110 300 120 240 150"/>
+    </g>
+    <!-- web app -> router -->
+    <g stroke="#64748B" stroke-width="1.6" fill="none" marker-end="url(#ar)">
+      <path d="M202 228 L202 238"/>
+    </g>
+    <!-- HERO: router -> Foundry agent service -->
+    <g stroke="#C8102E" stroke-width="2.4" fill="none" marker-end="url(#arRed)">
+      <path d="M355 360 C385 330 395 270 415 235"/>
+    </g>
+    <text x="384" y="300" text-anchor="middle" class="t-tiny" fill="#C8102E" font-weight="700" transform="rotate(-32 384 300)">classified turn → skill + model</text>
+    <!-- agent <-> IQ <-> search -->
+    <g stroke="#64748B" stroke-width="1.6" fill="none" marker-end="url(#ar)">
+      <path d="M703 229 L725 229"/>
+      <path d="M872 308 L872 325"/>
+    </g>
+    <!-- agent -> MCP tools -->
+    <g stroke="#94A3B8" stroke-width="1.5" fill="none" marker-end="url(#ar)" stroke-dasharray="5,4">
+      <path d="M703 200 C870 175 980 185 1098 190"/>
+      <path d="M703 250 C880 280 980 285 1098 286"/>
+      <path d="M703 280 C880 360 980 385 1098 388"/>
+    </g>
+    <!-- skills band -> agent service & router -->
+    <g stroke="#C8102E" stroke-width="1.5" fill="none" marker-end="url(#arRed)" stroke-dasharray="5,4">
+      <path d="M658 618 C620 520 580 360 559 308"/>
+      <path d="M405 618 C320 540 230 520 202 500"/>
+    </g>
+    <text x="640" y="470" text-anchor="middle" class="t-tiny" fill="#C8102E" font-style="italic">instructions per turn</text>
+    <!-- router -> data/personalisation -->
+    <g stroke="#94A3B8" stroke-width="1.4" fill="none" marker-end="url(#ar)" stroke-dasharray="4,4">
+      <path d="M355 440 C520 560 700 660 790 726"/>
+    </g>
+    <text x="560" y="610" text-anchor="middle" class="t-tiny" fill="#9F1239" font-style="italic">personalisation read / write · memory governance</text>
+    <!-- MCP tools -> SAP PO bus -->
+    <g stroke="#94A3B8" stroke-width="1.5" fill="none" marker-end="url(#ar)" stroke-dasharray="5,4">
+      <path d="M1255 230 C1300 480 1280 640 1258 726"/>
+      <path d="M1255 332 C1290 500 1275 650 1258 726"/>
+    </g>
+    <!-- wellbeing -> redis hold -->
+    <g stroke="#94A3B8" stroke-width="1.4" fill="none" marker-end="url(#ar)" stroke-dasharray="3,4">
+      <path d="M1098 410 C1040 560 1010 660 971 726"/>
+    </g>
+    <!-- ingestion chain -->
+    <g stroke="#94A3B8" stroke-width="1.5" fill="none" marker-end="url(#ar)">
+      <path d="M300 1006 L312 1006"/>
+      <path d="M482 1006 L494 1006"/>
+      <path d="M654 1006 L666 1006"/>
+      <path d="M826 1006 L838 1006"/>
+      <path d="M988 1006 L1000 1006"/>
+      <path d="M1150 1006 L1162 1006"/>
+    </g>
+  </svg>
+
+  <h3>What changed in the merge (reading the diagram)</h3>
+  <ul class="tight">
+    <li><strong>Pattern Router added in front of Foundry (left, red box).</strong> The gateway classifies the turn, picks the skill prompt and the per-task model, then invokes the Foundry Agent Service configured for that turn. This is the structural fix for purpose-blindness.</li>
+    <li><strong>Skills &amp; pattern-prompt library re-inserted (red band).</strong> Six git-versioned skill prompts (four reactive wired at launch; Nudge + Check-in in a follow-up release) feed the agent's per-turn instructions; classifier prompts feed the router. A/B and rollback via Container Apps revisions.</li>
+    <li><strong>Express / distress path restored (right, red boxes).</strong> Distress classifier in the router + <code>ltu-wellbeing-mcp</code> + Redis hold state give the in-channel advisor handoff with held conversation state.</li>
+    <li><strong>Personalisation tier expanded (centre-lower, red title).</strong> USER profile, bounded sanitised MEMORY, session log, and the pattern-tagged log that powers cohort analytics.</li>
+    <li><strong>Actions route through SAP PO (T18).</strong> The write path is <code>ltu-actions-mcp</code> → SAP PO → SIS, not MCP → SIS direct.</li>
+    <li><strong>Scale &amp; residency annotated.</strong> KEDA autoscale + census-wave behaviour on our compute; an explicit caveat that on Foundry the scale lever becomes model PTU/quota, and residency is met via a managed model endpoint in Azure AU East.</li>
+    <li><strong>Kept from the Foundry proposal:</strong> Foundry Agent Service + Azure AI Search as the managed runtime/grounding, the Admin Console, the Tool Registry UI, and the named ingestion sources. <strong>Foundry IQ is preview</strong> — designed toward as a follow-up agentic-retrieval enhancement (D6); Azure AI Search (GA) is the grounding default at launch, and no launch-critical path depends on a preview feature.</li>
+  </ul>
+
+  <footer class="foot">
+    La Trobe assistant · alignment review of the managed-Foundry proposal &amp; merged architecture ·
+    companion to <code>infrastructure.html</code>
+  </footer>
+</div>
+</body>
+</html>

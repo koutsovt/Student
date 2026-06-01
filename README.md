@@ -41,10 +41,16 @@ Six conversation patterns handle every topic across the student lifecycle:
 │   │   ├── landing/            Landing page sections
 │   │   └── lib/                Conversation engine, pattern metadata, types
 │   └── docs/
+│       ├── README.md                       Index of the docs set + reading order
 │       ├── personalisation-one-pager.pdf   12-page stakeholder briefing
 │       ├── personalisation-one-pager.html  Editable briefing source
-│       ├── infrastructure.html             Phase 1 infrastructure document
-│       └── decisions-and-rationale.html    90+ architectural decisions log
+│       ├── infrastructure.html             Infrastructure — reflects the settled D1–D6 direction
+│       ├── decisions-and-rationale.html    Architectural decisions log (incl. D1–D6)
+│       ├── duplication-buy-vs-build-review.html  Build-vs-buy vs managed Azure components (D1–D6)
+│       ├── managed-foundry-alignment-review.html Merged architecture (pattern tier + managed Foundry)
+│       ├── ssaf-use-case.html              SSAF MVP — one enquiry traced through every component
+│       ├── metrics-catalogue.html          33 metrics across Watson-parity, SLOs, new-architecture signals
+│       └── day-1-dashboard.html            Launch-screen mockup — KPIs, SLO alerts, six pattern tiles
 │
 └── engagement-playbook/
     └── playbook.html           Reusable methodology for AI assistant engagements
@@ -54,14 +60,91 @@ Six conversation patterns handle every topic across the student lifecycle:
 
 ## Running the prototype
 
+### Prerequisites
+
+- Node.js 18+ and npm
+- No API keys are required for the prototype client
+
 ```bash
 cd prototype
 npm install
-npm run dev        # http://localhost:5173
-npm run build      # static build → dist/
+npm run dev
 ```
 
-The prototype runs entirely in-browser with no backend. All conversation flows are deterministic scripted state machines — no LLM, no API keys required.
+Open the client in a browser:
+
+```text
+http://localhost:5173/
+```
+
+The prototype runs entirely in-browser with no backend. The Vite dev server only serves the React client; all conversation flows are deterministic scripted state machines with mock data. There are no live LLM calls, no API calls, and no API keys required.
+
+### Server and client steps
+
+This repository does not have a separate backend server for the prototype.
+
+1. Start the client dev server:
+
+   ```bash
+   cd prototype
+   npm install
+   npm run dev
+   ```
+
+2. Open the client:
+
+   ```text
+   http://localhost:5173/
+   ```
+
+3. Build the static client for submission or deployment:
+
+   ```bash
+   cd prototype
+   npm run build
+   ```
+
+4. Preview the production build locally:
+
+   ```bash
+   cd prototype
+   npm run preview
+   ```
+
+### Vice-Chancellor handoff
+
+For the Vice-Chancellor package, the simplest option is to host the built static client and send a link. The prototype has no backend and no live integrations, so the build output in `prototype/dist/` can be served by any static web server.
+
+If the package is sent as source code instead, include this repository plus [VC_HANDOFF.md](VC_HANDOFF.md) and [VC_RUN_GUIDE.html](VC_RUN_GUIDE.html). The recipient should create a local folder named `Student`, then copy the supplied package contents into that folder. Then they, or Codex acting on their behalf, can run:
+
+```bash
+codex --dangerously-bypass-approvals-and-sandbox "Run the prototype server"
+```
+
+That is the Codex YOLO-mode path and should only be used from the trusted copied handoff folder. The manual equivalent is:
+
+```bash
+cd prototype
+npm install
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:5173/
+```
+
+### Optional bakeoff runner
+
+The `bakeoff/` folder is a separate LLM evaluation runner, not the prototype server. It requires provider API keys in `bakeoff/.env`.
+
+```bash
+cd bakeoff
+npm install
+cp .env.example .env
+npm run bake
+```
 
 ---
 
@@ -70,20 +153,27 @@ The prototype runs entirely in-browser with no backend. All conversation flows a
 | Document | Description |
 |---|---|
 | [`docs/personalisation-one-pager.pdf`](prototype/docs/personalisation-one-pager.pdf) | 12-page briefing for senior leadership |
-| [`docs/infrastructure.html`](prototype/docs/infrastructure.html) | Phase 1 infrastructure — topology, components, MCP tool servers, cost |
-| [`docs/decisions-and-rationale.html`](prototype/docs/decisions-and-rationale.html) | 90+ decisions across architecture, tech stack, security, and rejected options |
+| [`docs/infrastructure.html`](prototype/docs/infrastructure.html) | Infrastructure — topology, components, MCP tool servers, cost (reflects the settled D1–D6 direction) |
+| [`docs/decisions-and-rationale.html`](prototype/docs/decisions-and-rationale.html) | 90+ decisions across architecture, tech stack, security, rejected options — incl. the D1–D6 managed-Foundry decisions |
+| [`docs/duplication-buy-vs-build-review.html`](prototype/docs/duplication-buy-vs-build-review.html) | Build-vs-buy against managed Microsoft components; the six decisions (D1–D6) and the residency trilemma |
+| [`docs/managed-foundry-alignment-review.html`](prototype/docs/managed-foundry-alignment-review.html) | The merged production architecture — our pattern-assessment tier in front of the managed Foundry runtime |
+| [`docs/ssaf-use-case.html`](prototype/docs/ssaf-use-case.html) | SSAF as the MVP use case — one topic routed three ways, traced through every component |
+| [`docs/metrics-catalogue.html`](prototype/docs/metrics-catalogue.html) | 33 metrics (M1–M33) — Watson-parity, per-pattern SLOs, outcome signals, feedback capture, cohort slices, continuous quality |
+| [`docs/day-1-dashboard.html`](prototype/docs/day-1-dashboard.html) | Visual mockup of the launch-day dashboard — 5 header KPIs, SLO alert strip, six pattern tiles, cohort × lifecycle row |
 | [`engagement-playbook/playbook.html`](engagement-playbook/playbook.html) | 8-phase methodology for conversational AI engagements |
 
 ---
 
 ## Architecture highlights
 
-- **Six-pattern conversation model** — intent classified before content delivery
-- **MCP tool servers** — three Container Apps services (`ltu-records-mcp`, `ltu-actions-mcp`, `ltu-wellbeing-mcp`) between the orchestrator and LTU systems
+- **Six-pattern conversation model** — intent classified before content delivery; a **Pattern Router** we build classifies the turn, then configures the managed agent
+- **Managed runtime (D1)** — production runtime is the managed **Azure AI Foundry Agent Service** (Australia East); our pattern-assessment, safety, personalisation and tool tiers sit around it
+- **Models configurable, not provider-agnostic (D1/D4)** — selected per task via **Azure Model Router** within the in-region Foundry catalogue (GPT-family at launch); no model named in code. `LLMClient` (T15) re-scoped to within-catalogue, not reversed
+- **Managed components (D2/D3)** — knowledge retrieval → **Azure AI Search**; prompt-injection defence → **Prompt Shields**; self-harm severity → **Content Safety**
+- **MCP tool servers** — three Container Apps services (`ltu-records-mcp`, `ltu-actions-mcp`, `ltu-wellbeing-mcp`) between the Pattern Router and LTU systems
 - **SAP PO middleware** — Action API calls route via LTU's existing SAP Process Orchestrator
-- **Provider-agnostic LLM** — `LLMClient` abstraction supports Anthropic Claude, OpenAI GPT-4o, Azure OpenAI (AU East), Google Gemini, GLM, Mistral, AWS Bedrock, self-hosted (Ollama/vLLM)
-- **Bounded memory** — USER profile + MEMORY facts + session log (Hermes-pattern, bounded by design)
-- **Phase 1 scope** — reactive patterns only; Azure AU East single-region; ~$5,400–11,500/mo at 30k students
+- **Bounded memory (D5)** — we own USER profile + MEMORY facts + session log (bounded, sanitised, RLS) as the system of record
+- **Launch scope** — reactive patterns only; Azure AU East single-region; ~$5,600–12,400/mo + reserved PTU at 30k students. SSAF is the proposed MVP use case
 
 ## Tech stack (prototype)
 
@@ -91,7 +181,7 @@ React 18 · Vite · TypeScript (strict) · Tailwind CSS · lucide-react
 
 ## Tech stack (production proposal)
 
-Anthropic Agent SDK (TS) · Azure Container Apps · PostgreSQL Flexible · Redis Premium · Azure AI Search · Docling · LlamaIndex · BGE reranker · Entra ID · GitHub Actions · Bicep
+Azure AI Foundry Agent Service (managed runtime) · Model Router · Azure AI Search · Prompt Shields / Content Safety · Azure Container Apps (Pattern Router + MCP tool servers) · PostgreSQL Flexible · Redis Premium · SAP PO · Entra ID · GitHub Actions · Bicep
 
 ---
 
