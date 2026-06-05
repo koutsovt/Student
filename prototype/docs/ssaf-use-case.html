@@ -87,7 +87,7 @@
 
   <!-- =========================================================== -->
   <h2>2. One topic, three intents &mdash; the difference from Charlie</h2>
-  <p class="section-lead">A student says &ldquo;SSAF&rdquo;. What they actually want varies. The Pattern Router reads the <em>purpose</em> first, then sends the turn down the right path with the right components. Charlie matched all three to the same FAQ article.</p>
+  <p class="section-lead">A student says &ldquo;SSAF&rdquo;. What they actually want varies. The agent's <em>first step</em> — the classify-route logic we build inside Foundry (§3.1–§3.2) — reads the <em>purpose</em> first, then sends the turn down the right path with the right components. Charlie matched all three to the same FAQ article.</p>
 
   <div class="legend">
     <span class="key" style="color:#059669"><span class="sw" style="background:#D1FAE5"></span>We build</span>
@@ -108,9 +108,9 @@
 
     <!-- classifier -->
     <rect x="395" y="108" width="310" height="68" rx="10" fill="#D1FAE5" stroke="#C8102E" stroke-width="2"/>
-    <text x="550" y="132" text-anchor="middle" class="t-title" fill="#9F1239">Pattern Router · classifier (we build)</text>
+    <text x="550" y="132" text-anchor="middle" class="t-title" fill="#9F1239">Classify · route — the agent's first step (we build)</text>
     <text x="550" y="149" text-anchor="middle" class="t-sub" fill="#065F46">reads intent first &rarr; {pattern · topic=SSAF · purpose · risk}</text>
-    <text x="550" y="165" text-anchor="middle" class="t-tiny" fill="#065F46">classify BEFORE retrieval &mdash; picks skill + model (Model Router)</text>
+    <text x="550" y="165" text-anchor="middle" class="t-tiny" fill="#065F46">classify first · selects the skill · requests the model (Model Router)</text>
 
     <!-- arrows to columns -->
     <g stroke="#94A3B8" stroke-width="1.6" fill="none" marker-end="url(#a)">
@@ -198,11 +198,12 @@
     <text x="250" y="150" text-anchor="middle" class="t-tiny" fill="#1E40AF">Entra &rarr; student_id</text>
 
     <rect x="340" y="78" width="160" height="108" rx="10" fill="#D1FAE5" stroke="#C8102E" stroke-width="2.2"/>
-    <text x="420" y="100" text-anchor="middle" class="t-title" fill="#9F1239">Pattern Router</text>
-    <text x="420" y="116" text-anchor="middle" class="t-tiny" fill="#065F46">classify · skill + model</text>
-    <text x="420" y="130" text-anchor="middle" class="t-tiny" fill="#065F46">budget · audit</text>
-    <text x="420" y="144" text-anchor="middle" class="t-tiny" fill="#065F46">MCP client</text>
-    <text x="420" y="162" text-anchor="middle" class="t-tiny" fill="#9F1239" font-style="italic">we build</text>
+    <text x="420" y="99" text-anchor="middle" class="t-title" fill="#9F1239">Gateway + classify</text>
+    <text x="420" y="114" text-anchor="middle" class="t-tiny" fill="#334155">edge: auth · budget · audit</text>
+    <text x="420" y="127" text-anchor="middle" class="t-tiny" fill="#5B21B6">classify · skill + model select</text>
+    <text x="420" y="140" text-anchor="middle" class="t-tiny" fill="#5B21B6">(agent's 1st step → Foundry)</text>
+    <text x="420" y="155" text-anchor="middle" class="t-tiny" fill="#9F1239" font-style="italic">we build · §3.2</text>
+    <text x="420" y="167" text-anchor="middle" class="t-tiny" fill="#6B7280">tools = Foundry tools</text>
 
     <rect x="520" y="92" width="150" height="80" rx="9" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.8"/>
     <text x="595" y="116" text-anchor="middle" class="t-title" fill="#6D28D9">Foundry Agent</text>
@@ -275,7 +276,7 @@
     <tbody>
       <tr><td class="n">1</td><td>Aisha types &ldquo;I want to defer my SSAF&rdquo;.</td><td>Web app &rarr; Front Door (CDN · WAF · TLS)</td></tr>
       <tr><td class="n">2</td><td>The request is authenticated; her <code>student_id</code> is established.</td><td>API Management · Entra ID</td></tr>
-      <tr><td class="n">3</td><td>The turn is classified &rarr; <code>{pattern: Decide, topic: SSAF, purpose: defer, risk: low}</code>; the Decide skill prompt and a model (via Model Router) are selected; her token budget is checked; an audit span opens.</td><td><span class="tag build">Build</span> Pattern Router</td></tr>
+      <tr><td class="n">3</td><td>The gateway checks her token budget and opens an audit span; the classify step (the agent's first step) reads intent &rarr; <code>{pattern: Decide, topic: SSAF, purpose: defer, risk: low}</code> and selects the Decide skill prompt + the per-task model.</td><td><span class="tag build">Build</span> Gateway + classify</td></tr>
       <tr><td class="n">4</td><td>The router invokes the managed agent with the Decide skill; the input is screened for injection.</td><td><span class="tag foundry">Foundry</span> Agent Service · Prompt Shields</td></tr>
       <tr><td class="n">5</td><td>The agent checks eligibility &mdash; eligible, deadline 14 May 2026, amount $162.50.</td><td><span class="tag build">Build</span> ltu-records-mcp &rarr; <span class="tag ltu">LTU</span> SAP&nbsp;PO &rarr; SIS (read)</td></tr>
       <tr><td class="n">6</td><td>The agent presents a confirmation gate: &ldquo;Lodge deferral of SSAF $162.50 to HELP?&rdquo; &mdash; <strong>nothing is written yet</strong>.</td><td><span class="tag build">Build</span> Decide skill (confirmation gate · SEC9)</td></tr>
@@ -294,8 +295,10 @@
     <tbody>
       <tr><td class="dim">Front Door</td><td>Public edge &mdash; CDN, WAF, TLS.</td><td><span class="tag azure">Azure</span></td><td>INF8</td></tr>
       <tr><td class="dim">API Management + Entra ID</td><td>Auth, rate-limit; resolves <code>student_id</code>.</td><td><span class="tag azure">Azure</span></td><td>SEC1 · T8</td></tr>
-      <tr><td class="dim">Pattern Router</td><td>Classifies intent, picks skill + model, enforces budget, opens audit, acts as MCP client. The classify-before-retrieval tier.</td><td><span class="tag build">Build</span></td><td>PR2 · D4</td></tr>
-      <tr><td class="dim">Foundry Agent Service</td><td>Runs the selected pattern's agent turn (managed runtime).</td><td><span class="tag foundry">Foundry</span></td><td>D1</td></tr>
+      <tr><td class="dim">Edge Gateway (BFF)</td><td>Auth, claims&rarr;<code>student_id</code>, per-student budget enforcement, audit span. Stays ours, at the edge. <em>(See <a href="infrastructure.html#gateway">§3.2</a>.)</em></td><td><span class="tag build">Build</span></td><td>SEC1 · A7</td></tr>
+      <tr><td class="dim">Classify · route (agent logic)</td><td>Classifies intent &rarr; <code>{pattern·topic·purpose·risk}</code>, selects the skill prompt and requests the per-task model. The agent's first step — built inside Foundry (prompt-agent pre-step at launch, Hosted-agent target).</td><td><span class="tag build">Build</span></td><td>PR2</td></tr>
+      <tr><td class="dim">Foundry Agent Service</td><td>Runs the selected pattern's agent turn — the managed <strong>agent platform</strong> we build the agent inside (not a model endpoint).</td><td><span class="tag foundry">Foundry</span></td><td>D1</td></tr>
+      <tr><td class="dim">Model Router</td><td>Picks the per-task model within the in-region catalogue. <em>Caveat: deploys in EUS2/Sweden today — at launch, direct in-region deployments + config.</em></td><td><span class="tag foundry">Foundry</span></td><td>D4</td></tr>
       <tr><td class="dim">Prompt Shields</td><td>Screens input for direct / indirect injection.</td><td><span class="tag foundry">Foundry</span></td><td>D3</td></tr>
       <tr><td class="dim">Azure AI Search</td><td>Knowledge grounding &mdash; answers &ldquo;What is SSAF?&rdquo; from Handbook / FAQ.</td><td><span class="tag azure">Azure</span></td><td>D2</td></tr>
       <tr><td class="dim">ltu-records-mcp</td><td><code>records_lookup</code> / <code>check_eligibility</code> &mdash; reads the SSAF balance and deferral eligibility.</td><td><span class="tag build">Build</span></td><td>T19</td></tr>
