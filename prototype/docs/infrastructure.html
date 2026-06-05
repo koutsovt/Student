@@ -261,8 +261,11 @@
         <ol>
           <li><a href="#topology">Topology &mdash; the big picture</a></li>
           <li><a href="#compute">Compute</a></li>
-          <li><a href="#app-services">Application services (pattern router + Foundry runtime)</a>
-            <ul><li><a href="#foundry-zone">3.1 Inside the Foundry zone</a></li></ul>
+          <li><a href="#app-services">Application services (agent built inside Foundry)</a>
+            <ul>
+              <li><a href="#foundry-zone">3.1 Inside Azure AI Foundry — the agent platform</a></li>
+              <li><a href="#gateway">3.2 Gateway vs agent logic</a></li>
+            </ul>
           </li>
           <li><a href="#repositories">Repositories (every store, mapped)</a></li>
           <li><a href="#data">Data tier (Azure specifics)</a></li>
@@ -323,28 +326,30 @@
         <text x="124" y="214" text-anchor="middle" font-size="9" fill="#1E3A8A">(composer lock)</text>
         <text x="124" y="240" text-anchor="middle" font-size="8" fill="#1E3A8A" opacity="0.6" font-style="italic">INF3 · T12</text>
 
-        <!-- Pattern Router (hero) -->
+        <!-- Edge Gateway + classify-route logic (two jobs, two homes) -->
         <rect x="230" y="124" width="330" height="128" rx="8" fill="#FFFFFF" stroke="#C8102E" stroke-width="2.2"/>
-        <text x="395" y="141" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9F1239">Agent Gateway · Pattern Router</text>
-        <text x="395" y="153" text-anchor="middle" font-size="8" fill="#C8102E">classify-before-Foundry · the tier Foundry does not provide</text>
+        <text x="395" y="140" text-anchor="middle" font-size="10.5" font-weight="700" fill="#9F1239">Edge Gateway + classify-route logic</text>
+        <text x="395" y="151" text-anchor="middle" font-size="7.5" fill="#C8102E">two jobs, two homes — see §3.2</text>
 
-        <rect x="242" y="160" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="317" y="174" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">① Classifier (PR2)</text>
-        <text x="317" y="186" text-anchor="middle" font-size="7.5" fill="#065F46">pattern·topic·purpose·risk</text>
+        <!-- LEFT: Edge Gateway (BFF) — ours, at the edge, outside Foundry -->
+        <rect x="240" y="157" width="152" height="76" rx="5" fill="#F1F5F9" stroke="#64748B" stroke-width="1.1"/>
+        <text x="316" y="171" text-anchor="middle" font-size="8.5" font-weight="700" fill="#334155">Edge Gateway (BFF)</text>
+        <text x="316" y="184" text-anchor="middle" font-size="7.5" fill="#475569">auth · claims→student_id</text>
+        <text x="316" y="195" text-anchor="middle" font-size="7.5" fill="#475569">rate-limit · budget · audit</text>
+        <text x="316" y="208" text-anchor="middle" font-size="7" fill="#334155" font-style="italic">ours · at the edge ·</text>
+        <text x="316" y="217" text-anchor="middle" font-size="7" fill="#334155" font-style="italic">stays outside Foundry</text>
+        <text x="316" y="228" text-anchor="middle" font-size="6.5" fill="#64748B">tools are Foundry tools (§8)</text>
 
-        <rect x="398" y="160" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="473" y="174" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">② Distress classifier</text>
-        <text x="473" y="186" text-anchor="middle" font-size="7.5" fill="#065F46">seeded by Content Safety</text>
+        <!-- RIGHT: classify-route logic — agent's first step, runs inside Foundry -->
+        <rect x="398" y="157" width="150" height="76" rx="5" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.1"/>
+        <text x="473" y="171" text-anchor="middle" font-size="8.5" font-weight="700" fill="#6D28D9">Classify · route (agent logic)</text>
+        <text x="473" y="184" text-anchor="middle" font-size="7.5" fill="#5B21B6">① pattern classifier — intent</text>
+        <text x="473" y="195" text-anchor="middle" font-size="7.5" fill="#5B21B6">② distress policy · ③ skill+model</text>
+        <text x="473" y="208" text-anchor="middle" font-size="7" fill="#6D28D9" font-style="italic">agent's first step →</text>
+        <text x="473" y="217" text-anchor="middle" font-size="7" fill="#6D28D9" font-style="italic">inside Foundry</text>
+        <text x="473" y="228" text-anchor="middle" font-size="6.5" fill="#5B21B6">pre-step at launch · Hosted agent target</text>
 
-        <rect x="242" y="198" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="317" y="212" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">③ Skill + model select</text>
-        <text x="317" y="224" text-anchor="middle" font-size="7.5" fill="#065F46">configures Foundry · D4·T16</text>
-
-        <rect x="398" y="198" width="150" height="34" rx="4" fill="#D1FAE5" stroke="#10B981" stroke-width="1"/>
-        <text x="473" y="212" text-anchor="middle" font-size="8.5" font-weight="700" fill="#065F46">④ Audit · budgets</text>
-        <text x="473" y="224" text-anchor="middle" font-size="7.5" fill="#065F46">claims→student_id · MCP client</text>
-
-        <text x="395" y="246" text-anchor="middle" font-size="8" fill="#9F1239" font-style="italic">Container Apps · KEDA autoscale · 5–10× census waves · T19</text>
+        <text x="395" y="247" text-anchor="middle" font-size="7.5" fill="#9F1239" font-style="italic">Pattern Router (intent) ≠ Foundry Model Router (model) · Container Apps · KEDA · T19</text>
 
         <!-- Skills library -->
         <rect x="576" y="124" width="200" height="128" rx="6" fill="#D1FAE5" stroke="#10B981" stroke-width="1.4"/>
@@ -615,7 +620,7 @@
             <td class="component">Agent runtime</td>
             <td class="shape"><span class="tag saas">Foundry</span></td>
             <td class="choice">Azure AI Foundry Agent Service (managed, AU East)</td>
-            <td class="why">D1 (updates T1). Managed hosted agent runtime — threads, tool-calling, grounding. Configured per turn by the Pattern Router. The Anthropic Agent SDK pattern informs the in-Foundry agent config; we no longer host the runtime ourselves.</td>
+            <td class="why">D1 (updates T1). Managed hosted agent runtime — threads, tool-calling, grounding. Configured per turn by the classify-route logic. We no longer host the runtime ourselves. (Models are GPT-family in AU East — no Anthropic model in the runtime; on the Hosted-agent target, the Anthropic Agent SDK is one available authoring framework — see §3.1.)</td>
           </tr>
           <tr>
             <td class="component">Per-task model selection</td>
@@ -694,8 +699,8 @@
         <tbody>
           <tr>
             <td class="component">Agents (runtime)</td>
-            <td class="choice">Foundry hosts &amp; runs the agent — <strong>prompt agents</strong> (config-only) or <strong>Hosted agents</strong> (your own code: Agent Framework, LangGraph, custom), with managed endpoint, scaling, identity and lifecycle</td>
-            <td class="why">Our pattern model lives here. The classifier + skill selection (PR2) is the agent's logic. <strong>At launch</strong> it runs as prompt-agent configuration + our skill prompts; <strong>target</strong> is a Hosted agent so the classify-before-answer orchestration runs inside Foundry as code (updates T1).</td>
+            <td class="choice">Foundry hosts &amp; runs the agent — <strong>prompt agents</strong> (config-only) or <strong>Hosted agents</strong> (your own code in a BYO framework: Agent Framework, LangGraph, OpenAI Agents SDK, <strong>Anthropic Agent SDK</strong>, or custom), with managed endpoint, scaling, identity and lifecycle</td>
+            <td class="why">Our pattern model lives here. The classifier + skill selection (PR2) is the agent's logic. <strong>At launch</strong> it runs as prompt-agent configuration + our skill prompts; <strong>target</strong> is a Hosted agent so the classify-before-answer orchestration runs inside Foundry as code (updates T1) — the authoring framework is a free choice (the Anthropic Agent SDK pattern from the original T1 plan ports here), and is independent of the model, which stays GPT-family in AU East.</td>
             <td class="why">prompt GA · hosted preview (D6)</td>
           </tr>
           <tr>
@@ -735,6 +740,42 @@
         <strong>Launch vs target — the GA subset is real today; the platform-native pieces firm up as they reach GA (D6).</strong>
         <strong>At launch (GA):</strong> a prompt agent running our skill prompts, models deployed in AU East, our MCP servers connected as tools, Azure AI Search as connected knowledge, our governed memory store, content safety + Entra identity + tracing.
         <strong>Target (preview today, design toward):</strong> the agent as a <em>Hosted agent</em> (our orchestration as code inside Foundry), Foundry IQ for agentic retrieval, Model Router in AU East, and a revisit of Foundry managed memory. No preview feature sits on a launch-critical path.
+      </div>
+
+      <h3 id="gateway">3.2 The Agent Gateway / classify-route logic — what's gateway vs agent logic</h3>
+      <p class="section-lead">The diagram's red box bundles two jobs that have <strong>different homes</strong> after the platform reframe. Keeping them in one &ldquo;Pattern Router&rdquo; was the older model-runtime view. They split cleanly:</p>
+
+      <table>
+        <thead><tr><th>Piece</th><th>What it does</th><th>Home</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="component">Edge Gateway (BFF)</td>
+            <td class="choice">Auth, claims&rarr;<code>student_id</code>, rate-limit, per-student budget enforcement, request shaping, audit span open/close</td>
+            <td class="why"><strong>Ours, at the edge — outside Foundry, permanently.</strong> Platform-independent plumbing every front door needs. A thin Container Apps service. Note: tool <em>invocation</em> is no longer here — the MCP servers are Foundry tools (&sect;8), called by the agent, not by a client we hand-wire.</td>
+          </tr>
+          <tr>
+            <td class="component">Classify · route · select</td>
+            <td class="choice">① pattern classifier (<code>intent</code> = pattern·topic·purpose·risk) · ② distress policy · ③ skill + per-task model selection</td>
+            <td class="why"><strong>This is the agent's reasoning, not gateway plumbing.</strong> It is the <em>agent's first step</em> → it belongs inside Foundry: a pre-step (a cheap model call) at launch, folded into a <strong>Hosted agent</strong> as the target. Drawing it as a permanent external &ldquo;tier Foundry does not provide&rdquo; was the old framing; the <em>intent logic</em> is ours, but it runs inside the platform.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="section-lead">Four points this clears up:</p>
+      <ul>
+        <li><strong>Pattern Router (intent) &ne; Model Router (model).</strong> Two different routers. <em>We</em> classify <em>intent</em> (which of the six patterns, typed JSON) — business logic, ours. <em>Foundry's</em> Model Router picks the <em>model</em> (D4) — managed. ③ does the first and <em>requests</em> the second; they are not the same thing.</li>
+        <li><strong>Distress: Content Safety is the detector; our distress policy is the decision.</strong> Content Safety (inside Foundry) scores self-harm severity on the input; <em>our</em> logic turns that into the Express routing decision, the distress hold, and the review queue (the duty-of-care flow). Content Safety seeds it — it does not own it.</li>
+        <li><strong>Audit / budget / identity overlap with Foundry — be explicit which is system of record.</strong> Foundry now provides Entra <em>agent identity</em>, App Insights <em>tracing</em>, and model <em>quota</em>. Our pattern-tagged audit log (&sect;4) is the system of record for cohort analytics; Foundry tracing is the per-call execution trace. Budget is enforced at our gateway (per-student token caps) <em>above</em> Foundry quota. State both rather than letting them silently overlap.</li>
+        <li><strong>&ldquo;Pre-step at launch&rdquo; vs &ldquo;Hosted agent&rdquo; is a real migration, not just wording.</strong> At launch the classify step runs as our Container Apps call before invoking a Foundry prompt agent; the target moves that orchestration inside Foundry as a Hosted agent (preview, D6).</li>
+      </ul>
+
+      <div class="callout amber">
+        <strong>Open design decisions (flagged, not yet settled).</strong> These are genuine forks, not doc wording — for the steering / architecture discussion:
+        <ul class="tight" style="margin-top:8px;">
+          <li><strong>Skill selection mechanism:</strong> one Foundry agent reconfigured with the chosen skill prompt per turn, <em>or</em> N prompt agents (one per pattern) with <strong>Foundry connected-agents / handoff</strong> doing the routing. Foundry now supports the second natively; it changes how skills are deployed, A/B'd and traced.</li>
+          <li><strong>Distress ordering on the critical path:</strong> does distress detection <em>gate</em> before the agent runs, or run <em>in parallel</em>? A latency-vs-safety call on the highest-stakes path.</li>
+          <li><strong>Audit &amp; budget ownership:</strong> confirm our gateway is the system of record for the pattern-tagged log and budget enforcement, with Foundry tracing/quota as the execution layer — rather than two competing sources of truth.</li>
+        </ul>
       </div>
 
       <!-- ====================================================== -->

@@ -156,7 +156,7 @@ npm run bake
 | [`docs/infrastructure.html`](prototype/docs/infrastructure.html) | Infrastructure — topology, components, MCP tool servers, cost (reflects the settled D1–D6 direction) |
 | [`docs/decisions-and-rationale.html`](prototype/docs/decisions-and-rationale.html) | 90+ decisions across architecture, tech stack, security, rejected options — incl. the D1–D6 managed-Foundry decisions |
 | [`docs/duplication-buy-vs-build-review.html`](prototype/docs/duplication-buy-vs-build-review.html) | Build-vs-buy against managed Microsoft components; the six decisions (D1–D6) and the residency trilemma |
-| [`docs/managed-foundry-alignment-review.html`](prototype/docs/managed-foundry-alignment-review.html) | The merged production architecture — our pattern-assessment tier in front of the managed Foundry runtime |
+| [`docs/managed-foundry-alignment-review.html`](prototype/docs/managed-foundry-alignment-review.html) | The merged production architecture — our agent, tools, knowledge and memory built inside the Azure AI Foundry agent platform |
 | [`docs/ssaf-use-case.html`](prototype/docs/ssaf-use-case.html) | SSAF as the MVP use case — one topic routed three ways, traced through every component |
 | [`docs/metrics-catalogue.html`](prototype/docs/metrics-catalogue.html) | 33 metrics (M1–M33) — Watson-parity, per-pattern SLOs, outcome signals, feedback capture, cohort slices, continuous quality |
 | [`docs/day-1-dashboard.html`](prototype/docs/day-1-dashboard.html) | Visual mockup of the launch-day dashboard — 5 header KPIs, SLO alert strip, six pattern tiles, cohort × lifecycle row |
@@ -167,7 +167,7 @@ npm run bake
 ## Architecture highlights
 
 - **Six-pattern conversation model** — intent classified before content delivery; a **Pattern Router** we build classifies the turn, then configures the managed agent
-- **Managed runtime (D1)** — production runtime is the managed **Azure AI Foundry Agent Service** (Australia East); our pattern-assessment, safety, personalisation and tool tiers sit around it
+- **Agent platform (D1)** — we build on **Azure AI Foundry as the managed agent platform** (Australia East): the agent, tools, knowledge and memory are built *inside* Foundry as first-class constructs — build-inside, not a separate stack wrapped around a model endpoint
 - **Models configurable, not provider-agnostic (D1/D4)** — selected per task via **Azure Model Router** within the in-region Foundry catalogue (GPT-family at launch); no model named in code. `LLMClient` (T15) re-scoped to within-catalogue, not reversed
 - **Managed components (D2/D3)** — knowledge retrieval → **Azure AI Search**; prompt-injection defence → **Prompt Shields**; self-harm severity → **Content Safety**
 - **MCP tool servers** — three Container Apps services (`ltu-records-mcp`, `ltu-actions-mcp`, `ltu-wellbeing-mcp`) between the Pattern Router and LTU systems
@@ -181,7 +181,7 @@ React 18 · Vite · TypeScript (strict) · Tailwind CSS · lucide-react
 
 ## Tech stack (production proposal)
 
-Azure AI Foundry Agent Service (managed runtime) · Model Router · Azure AI Search · Prompt Shields / Content Safety · Azure Container Apps (Pattern Router + MCP tool servers) · PostgreSQL Flexible · Redis Premium · SAP PO · Entra ID · GitHub Actions · Bicep
+Azure AI Foundry (managed agent platform) · Model Router · Azure AI Search · Prompt Shields / Content Safety · Azure Container Apps (orchestration + MCP tool servers) · PostgreSQL Flexible · Redis Premium · SAP PO · Entra ID · GitHub Actions · Bicep
 
 ---
 

@@ -67,7 +67,7 @@ Layer cake (per production turn):
 4. **Tool definitions** — only Decide loads Action APIs
 5. **Retrieved context** — USER + MEMORY + past snippets
 
-Model provider — **settled direction (D1, 28 May 2026):** the production runtime is the managed **Azure AI Foundry Agent Service** (Australia East). Models stay **configurable within the in-region Foundry catalogue** via **Model Router** (D4) — selection is config, not code; no model is named in code. **GPT-family at launch** (Claude is not available in AU East on Foundry). Provider-agnosticism (T15) is **re-scoped, not reversed** — portability narrows from cross-cloud to within the in-region catalogue; an out-of-region model would be a sovereign side path (e.g. Bedrock Sydney) outside the managed runtime. Full rationale in `docs/duplication-buy-vs-build-review.html`; the static map is `docs/infrastructure.html`.
+Model provider — **settled direction (D1, 28 May 2026):** we build on **Azure AI Foundry as the managed agent platform** (Australia East). Foundry is a complete agent platform, **not just a model runtime** — the agent, tools, knowledge and memory are built *inside* it as first-class constructs (Hosted agent, Toolbox tools, connected knowledge, connected governed store), **not a separate stack wrapped around a model endpoint** ("build-inside, not wrap-around"). What stays ours is the *content* of those constructs (the classify-before-answer logic, skill prompts, SAP PO tool implementations, governed-memory rules). Models stay **configurable within the in-region Foundry catalogue** via **Model Router** (D4) — config, not code; no model named in code. **GPT-family at launch** (Claude is not available in AU East on Foundry). Provider-agnosticism (T15) is **re-scoped, not reversed**. *Region caveat (verified Jun 2026): Model Router itself deploys only in East US 2 / Sweden Central — at launch use direct in-region deployments + the config layer; adopt Model Router when it reaches AU East.* Full rationale in `docs/duplication-buy-vs-build-review.html`; the static map is `docs/infrastructure.html` (§3.1 walks the platform pillars).
 
 ## Anchors when working in the codebase
 
@@ -87,10 +87,10 @@ Model provider — **settled direction (D1, 28 May 2026):** the production runti
 - Six pattern prompt files in `src/data/skills/`
 - Metrics catalogue (`docs/metrics-catalogue.html`) — 33 metrics across Watson-parity, per-pattern SLOs, new-architecture outcomes, pattern-specific feedback, cohort slices, and continuous quality
 - Day-1 dashboard mockup (`docs/day-1-dashboard.html`) — single-screen launch view; sample data only, banner says so
-- **Settled runtime/provider direction (D1–D6)** — managed Azure AI Foundry runtime (AU East); models configurable via the catalogue + Model Router (D4); retrieval → Azure AI Search (D2); injection defence → Prompt Shields (D3); we own MEMORY (D5); preview features off launch-critical paths (D6)
+- **Settled runtime/provider direction (D1–D6)** — Azure AI Foundry as the managed **agent platform** (AU East): agents/tools/knowledge/memory built inside it; models configurable via the catalogue + Model Router (D4); retrieval → Azure AI Search (D2); injection defence → Prompt Shields (D3); we own MEMORY (D5); preview features off launch-critical paths (D6)
 - Build-vs-buy review (`docs/duplication-buy-vs-build-review.html`) — the six decisions against managed Microsoft components
-- Managed-Foundry alignment review (`docs/managed-foundry-alignment-review.html`) — merged architecture (our pattern tier in front of Foundry)
-- `docs/infrastructure.html` reconciled to D1–D6 (managed runtime, AI Search, Prompt Shields, Model Router, Admin Console + Tool Registry UI; cost + scale updated for PTU)
+- Managed-Foundry alignment review (`docs/managed-foundry-alignment-review.html`) — merged architecture (our differentiators built inside the Foundry platform)
+- `docs/infrastructure.html` reconciled to D1–D6 and reframed Foundry-as-platform (§3.1 platform pillars; AI Search, Prompt Shields, Model Router, Admin Console + Tool Registry UI; cost + scale updated for PTU)
 - SSAF MVP walkthrough (`docs/ssaf-use-case.html`) — one topic routed three ways; the proposed launch use case
 - Docs index (`docs/README.md`)
 

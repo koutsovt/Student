@@ -4,14 +4,14 @@ Index of the architecture, decision, and stakeholder documents. Most are self-co
 
 ## Settled direction (read this first)
 
-The runtime/provider question is **decided (D1, 28 May 2026)**: the production runtime is the **managed Azure AI Foundry Agent Service** (Australia East), with **models kept configurable within the in-region Foundry catalogue** via Model Router (D4). GPT-family at launch (Claude is not in AU East on Foundry). Knowledge retrieval is **Azure AI Search** (D2), prompt-injection defence is **Prompt Shields** (D3), we **own MEMORY** as system of record (D5), and preview features stay off launch-critical paths (D6). Provider-agnosticism (`LLMClient`, T15) is **re-scoped to within-catalogue, not reversed**.
+The runtime/provider question is **decided (D1, 28 May 2026)**: we build on **Azure AI Foundry as the managed agent platform** (Australia East). Foundry is a complete agent platform, **not just a model runtime** — the agent, tools, knowledge and memory are built *inside* it as first-class constructs ("build-inside, not wrap-around"). Models are **configurable within the in-region Foundry catalogue** via Model Router (D4); GPT-family at launch (Claude is not in AU East on Foundry). Knowledge → **Azure AI Search** (D2); prompt-injection defence → **Prompt Shields** (D3); we **own MEMORY** as system of record (D5); preview features stay off launch-critical paths (D6). Provider-agnosticism (`LLMClient`, T15) is **re-scoped to within-catalogue, not reversed**. *Region caveat (verified Jun 2026): Model Router itself deploys only in East US 2 / Sweden Central — adopt in-region when it reaches AU East.*
 
-What we build vs what we buy: we own the **Pattern Router** (intent classification), the **skills library**, the **distress/Express** path, the **MCP → SAP PO** action middleware, the **personalisation/MEMORY** tier, and the management plane (**Admin Console**, **Tool Registry UI**). Everything else is managed Azure.
+What we build vs what we buy: we author our differentiators **inside the Foundry platform** — the **classifier/agent logic** (intent classification), the **skills library**, the **distress/Express** path, the **MCP → SAP PO** tools, the **personalisation/MEMORY** store, and the management plane (**Admin Console**, **Tool Registry UI**). Everything else is native Foundry / managed Azure.
 
 ## Reading order
 
 1. **`duplication-buy-vs-build-review.html`** — the decisions (D1–D6) and the residency trilemma. *Start here for the production direction.*
-2. **`managed-foundry-alignment-review.html`** — the merged architecture: our pattern-assessment tier in front of the managed Foundry runtime.
+2. **`managed-foundry-alignment-review.html`** — the merged architecture: our agent, tools, knowledge and memory built inside the Azure AI Foundry agent platform.
 3. **`infrastructure.html`** — the full static map: topology, components, repositories, MCP servers, cost, scale (reflects D1–D6).
 4. **`ssaf-use-case.html`** — one enquiry (SSAF, the proposed MVP) traced through every component; shows why one topic routes three ways.
 5. **`decisions-and-rationale.html`** — the complete decision log, incl. the D1–D6 records (§13).
