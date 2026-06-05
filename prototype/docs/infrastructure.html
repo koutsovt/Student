@@ -770,7 +770,7 @@
       </ul>
 
       <div class="callout amber">
-        <strong>Open design decisions (flagged, not yet settled).</strong> These are genuine forks, not doc wording — for the steering / architecture discussion:
+        <strong>Open design decisions (flagged, not yet settled).</strong> These are genuine forks, not doc wording — written up in full (options · trade-offs · recommendation · what's needed to decide) in <a href="pattern-router-decisions.html">pattern-router-decisions.html</a>. In brief:
         <ul class="tight" style="margin-top:8px;">
           <li><strong>Skill selection mechanism:</strong> one Foundry agent reconfigured with the chosen skill prompt per turn, <em>or</em> N prompt agents (one per pattern) with <strong>Foundry connected-agents / handoff</strong> doing the routing. Foundry now supports the second natively; it changes how skills are deployed, A/B'd and traced.</li>
           <li><strong>Distress ordering on the critical path:</strong> does distress detection <em>gate</em> before the agent runs, or run <em>in parallel</em>? A latency-vs-safety call on the highest-stakes path.</li>

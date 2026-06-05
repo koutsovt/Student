@@ -24,6 +24,7 @@ What we build vs what we buy: we author our differentiators **inside the Foundry
 | `managed-foundry-alignment-review.html` | Merged production architecture (pattern tier + managed Foundry) | Architecture |
 | `infrastructure.html` | Azure topology, components, MCP tool servers, repositories, observability, cost, scale | Architecture / IT |
 | `ssaf-use-case.html` | SSAF MVP walkthrough — one topic, three patterns, full component trace | Architecture / stakeholder |
+| `pattern-router-decisions.html` | Open design decisions for the gateway / agent logic (skill selection, distress ordering, audit/budget ownership) | Architecture / steering |
 | `decisions-and-rationale.html` | Full decision log (T/A/SEC/K/PR/D series), incl. D1–D6 | Architecture |
 | `metrics-catalogue.html` | The instrumentation contract — 33 metrics (M1–M33), SLOs, owners, emission points | Architecture / ops |
 | `day-1-dashboard.html` | Launch-day dashboard mockup (sample data) | Stakeholder |

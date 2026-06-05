@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pattern Router / agent-logic — open design decisions · La Trobe assistant</title>
+  <style>
+    :root {
+      --ltu-red:#C8102E; --ltu-navy:#1F2A44; --surface:#FFFFFF; --surface-soft:#F5F7FA;
+      --border:#E5E7EB; --muted:#6B7280; --success:#0F7B5C; --amber:#B45309; --purple:#6D28D9; --blue:#1D4ED8;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; color:var(--ltu-navy); font-size:14px; line-height:1.55; background:var(--surface); }
+    .container { max-width:1100px; margin:0 auto; padding:0 24px 80px; }
+    header.cover { border-bottom:3px solid var(--ltu-red); padding:32px 0 18px; margin-bottom:26px; }
+    .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.20em; text-transform:uppercase; color:var(--ltu-red); }
+    h1 { font-size:28px; margin:6px 0 8px; line-height:1.15; }
+    .lead { max-width:880px; color:rgba(31,42,68,0.85); font-size:15px; }
+    .meta { font-size:12px; color:var(--muted); margin-top:8px; }
+    h2 { font-size:19px; margin:38px 0 6px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+    h3 { font-size:15px; margin:20px 0 6px; }
+    .section-lead { font-size:13px; color:rgba(31,42,68,0.78); margin:0 0 12px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+    th { text-align:left; font-size:10px; font-weight:700; letter-spacing:0.10em; text-transform:uppercase; color:var(--muted); padding:6px 10px; border-bottom:2px solid var(--border); background:var(--surface-soft); vertical-align:bottom; }
+    td { padding:8px 10px; vertical-align:top; border-bottom:1px solid var(--border); color:rgba(31,42,68,0.88); }
+    td.dim { font-weight:700; color:var(--ltu-navy); width:20%; }
+    code { font-family:'SF Mono',Menlo,monospace; font-size:12px; background:var(--surface-soft); padding:1px 5px; border-radius:3px; }
+    .callout { background:var(--surface-soft); border-left:3px solid var(--ltu-navy); padding:10px 14px; margin:14px 0; font-size:13px; border-radius:0 6px 6px 0; }
+    .callout.green { border-left-color:var(--success); background:rgba(15,123,92,0.06); }
+    .callout.amber { border-left-color:var(--amber); background:rgba(180,83,9,0.06); }
+    .callout.red { border-left-color:var(--ltu-red); background:rgba(200,16,46,0.04); }
+    .callout strong { color:var(--ltu-navy); }
+    ul.tight { margin:6px 0 14px; padding-left:20px; }
+    ul.tight li { margin-bottom:5px; }
+    .dcard { border:1px solid var(--border); border-left:4px solid var(--purple); border-radius:8px; padding:14px 16px; margin:16px 0; background:#fff; }
+    .dcard h3 { margin:0 0 4px; font-size:16px; }
+    .did { font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--purple); text-transform:uppercase; }
+    .opt { font-size:13px; margin:6px 0; }
+    .opt b { color:var(--ltu-navy); }
+    .rec { background:rgba(15,123,92,0.06); border-left:3px solid var(--success); padding:8px 12px; border-radius:0 6px 6px 0; margin-top:10px; font-size:13px; }
+    .rec strong { color:var(--success); }
+    .todecide { background:rgba(180,83,9,0.06); border-left:3px solid var(--amber); padding:8px 12px; border-radius:0 6px 6px 0; margin-top:8px; font-size:13px; }
+    .chip { display:inline-block; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:999px; margin-left:6px; }
+    .chip.launch { color:#065F46; background:#D1FAE5; }
+    .chip.target { color:#5B21B6; background:#EDE9FE; }
+    footer.foot { margin-top:54px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header class="cover">
+    <div class="eyebrow">La Trobe assistant · open design decisions · gateway &amp; agent logic</div>
+    <h1>Pattern Router / agent-logic — open design decisions</h1>
+    <p class="lead">
+      The three genuine forks flagged in <a href="infrastructure.html#gateway">infrastructure.html §3.2</a> — skill
+      selection, distress ordering, and audit/budget ownership. These are design decisions, not doc wording, for the
+      steering / architecture discussion. Each is written up with the options, trade-offs, a recommendation, and what's
+      needed to settle it. None blocks launch; each is mainly a <em>launch → target</em> migration gated on preview
+      features reaching GA.
+    </p>
+    <p class="meta">Companion to <code>infrastructure.html</code> (§3.1 platform pillars, §3.2 gateway vs agent logic) and <code>decisions-and-rationale.html</code> · capability claims verified against Microsoft Learn, Jun 2026</p>
+  </header>
+
+  <div class="callout green">
+    <strong>The through-line — read this first.</strong> Several of these look like new decisions but mostly dissolve
+    once you notice that <strong>our classify step already runs before the agent</strong> and already emits
+    <code>{pattern · topic · purpose · risk}</code>. Distress detection (G2) and pattern tagging for audit (G3) fold
+    into that existing pre-agent call for free; skill selection (G1) is just &ldquo;which prompt that step injects.&rdquo;
+    The genuinely open part is the <strong>launch → target migration</strong> — single agent → Foundry handoff, and
+    confirming the gateway owns budget/audit — gated on preview features reaching GA (D6).
+  </div>
+
+  <!-- =========================================================== -->
+  <h2>Summary</h2>
+  <table>
+    <thead><tr><th>#</th><th>Decision</th><th>Recommendation</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">G1</td><td>Skill selection mechanism</td><td>Launch: one agent, skill injected per turn. Target: N agents + Foundry handoff (skills already declare <code>handoff_targets</code>).</td><td>Phase it · lock &ldquo;skills stay runtime-injected&rdquo; now</td></tr>
+      <tr><td class="dim">G2</td><td>Distress ordering on the critical path</td><td>Gate before the agent runs — and it's nearly free because the classifier already runs pre-agent.</td><td>Recommend gate · set severity thresholds</td></tr>
+      <tr><td class="dim">G3</td><td>Audit / budget / identity ownership</td><td>Name the layering: our pattern-tagged log + per-student budget + student identity are ours; Foundry tracing/quota/agent-identity sit beneath.</td><td>Recommend explicit split · confirm propagation</td></tr>
+    </tbody>
+  </table>
+
+  <!-- =========================================================== -->
+  <div class="dcard">
+    <div class="did">Decision G1</div>
+    <h3>Skill selection — one agent reconfigured, or N agents with handoff</h3>
+    <p class="opt"><b>The fork.</b> When the classifier picks a pattern (Decide, Express, …), how does that become a running Foundry agent?</p>
+    <p class="opt"><b>Option A — one agent, skill prompt injected per turn. <span class="chip launch">launch / GA</span></b> One Foundry prompt agent; each turn we pass the chosen pattern's skill prompt as the instructions (via the Responses API). Pattern becomes a <em>trace attribute</em>.
+      <br><span class="ok">Pros:</span> simplest; one resource; matches our layer cake (system + classifier + active pattern prompt); skills stay our git-versioned files injected at runtime; prompt-agent GA → launch-safe.
+      <br><span class="x">Cons:</span> A/B-ing a skill = versioning the injected prompt, not an agent; all patterns share one trace identity; per-pattern tool scoping (only Decide loads Action APIs) is enforced by us per turn, not structurally.</p>
+    <p class="opt"><b>Option B — N prompt agents (one per pattern) + Foundry connected-agents / handoff. <span class="chip target">target / preview</span></b> A Foundry agent per pattern; native handoff transfers between them.
+      <br><span class="ok">Pros:</span> each pattern is first-class — own instructions, tools, identity, <strong>per-agent traces</strong> (&ldquo;Decide agent p95&rdquo;), versioning, A/B; tool-scoping is structural; <strong>handoff maps exactly onto our skill files' <code>handoff_targets</code> frontmatter</strong> (<code>transfer_to_express</code>, <code>transfer_to_decide</code> already declared).
+      <br><span class="x">Cons:</span> connected-agents/handoff is <strong>preview (D6)</strong>; more resources; cross-agent conversation state; the classify step still picks the <em>entry</em> agent.</p>
+    <div class="rec"><strong>Recommendation — phase it.</strong> <strong>Launch = A</strong> (one agent, skill injected per turn, pattern as a trace tag). <strong>Target = B</strong> once handoff is GA — promote each pattern to its own Foundry agent and use native handoff for the transfers. The skill files already encode <code>handoff_targets</code>, so A→B is natural <em>provided skills stay runtime-injected prompts, not baked into fixed agent definitions</em>. That constraint is the call to lock now.</div>
+    <div class="todecide"><strong>To decide:</strong> confirm prompt agents accept per-request instruction injection (they do, via the Responses API); decide whether per-pattern tool-scoping is worth pulling B forward for <strong>Decide</strong> (the write path) specifically.</div>
+  </div>
+
+  <!-- =========================================================== -->
+  <div class="dcard">
+    <div class="did">Decision G2</div>
+    <h3>Distress ordering — gate before the agent, or run in parallel</h3>
+    <p class="opt"><b>The fork.</b> When does distress detection happen relative to the agent generating a response?</p>
+    <p class="opt"><b>Option A — gate.</b> Detect distress <em>before</em> the agent runs; if distress, short-circuit straight to the Express held-state — the normal pattern agent never generates.
+      <br><span class="ok">Pros:</span> safest — a student in crisis never receives a retrieve-and-answer response; held-state engages first; no chance the model says the wrong thing.
+      <br><span class="x">Cons (apparent):</span> a safety pre-check on every turn, including the ~99% non-distress ones.</p>
+    <p class="opt"><b>Option B — parallel.</b> Run the agent and distress detection concurrently; cancel/replace if distress fires.
+      <br><span class="ok">Pros:</span> no added latency on normal turns.
+      <br><span class="x">Cons:</span> race condition — if generation finishes (or streams tokens) before distress fires, the student may briefly see a normal response; cancellation is fiddly, worse with streaming.</p>
+    <p class="opt"><b>Option C — post-filter.</b> Generate, check output, then suppress. <span class="x">Worst</span> — wasted generation and the student waited for nothing.</p>
+    <div class="rec"><strong>Recommendation — gate (A), and note it's nearly free.</strong> The usual objection is latency, but <strong>our classifier already runs before the agent and already emits <code>risk</code></strong> — so distress detection folds into the <em>existing</em> pre-agent classify call; it is not a separate round-trip. Content Safety (GA, in Foundry) seeds/validates severity. Critical severity (self-harm / immediate danger) hard-gates to <code>request_advisor_handoff</code> with no probe — already in the Express skill.</div>
+    <div class="todecide"><strong>To decide:</strong> confirm the distress classifier is part of the pre-agent classify step (so gating is free); set the severity threshold that <strong>hard-gates</strong> vs <strong>soft-routes</strong>; keep this distinct from Prompt Shields' XPIA check on <em>retrieved</em> content (a separate concern).</div>
+  </div>
+
+  <!-- =========================================================== -->
+  <div class="dcard">
+    <div class="did">Decision G3</div>
+    <h3>Audit / budget / identity — what's ours vs Foundry's</h3>
+    <p class="opt"><b>The risk.</b> Foundry now provides Entra <strong>agent identity</strong>, App Insights <strong>tracing</strong>, and model <strong>quota / PTU</strong> — which overlap our pattern-tagged audit log, per-student budgets, and identity handling. Left unstated, that's two sources of truth.</p>
+    <table>
+      <thead><tr><th>Concern</th><th>Foundry provides</th><th>We own</th><th>System of record</th></tr></thead>
+      <tbody>
+        <tr><td class="dim">Audit / analytics</td><td>App Insights <strong>execution traces</strong> (model calls, tool calls, latency, errors)</td><td><strong>Pattern-tagged business log</strong> — student_id · pattern · topic · purpose · risk · outcome per turn</td><td><strong>Ours</strong> — generic traces can't reconstruct &ldquo;32% of SSAF queries were deferral-purpose&rdquo;; that needs our pattern tags. Same App Insights sink, different queries.</td></tr>
+        <tr><td class="dim">Budget / capacity</td><td><strong>Quota / PTU</strong> — aggregate throughput ceiling per region</td><td><strong>Per-student token budget</strong> (A7 · T16) — fairness + cost control; drives the distress-hold pause</td><td><strong>Ours</strong>, enforced at the gateway (Redis counter, decremented <em>before</em> the Foundry call). PTU is the capacity floor beneath, reserved for census.</td></tr>
+        <tr><td class="dim">Identity</td><td><strong>Agent identity</strong> (Entra, per agent — for the agent to call tools / Azure)</td><td><strong>Student identity</strong> (claims→<code>student_id</code> — for <em>whose</em> data, RLS)</td><td>Both, no conflict — but <code>student_id</code> must propagate into the agent context so MEMORY / records reads are RLS-scoped.</td></tr>
+      </tbody>
+    </table>
+    <div class="rec"><strong>Recommendation — name the layering so nothing competes.</strong> Our pattern-tagged log is authoritative for <strong>analytics + retention</strong> (Foundry tracing = operational observability, not a substitute); per-student budget is enforced at <strong>our gateway before invoking Foundry</strong> (quota/PTU is the platform capacity beneath); student identity is ours and <strong>flows into the agent context</strong> for RLS, alongside Foundry's agent identity.</div>
+    <div class="todecide"><strong>To decide:</strong> confirm we're not double-paying for observability (agree what each emits to App Insights); confirm <code>student_id</code> propagation into the Foundry agent for RLS on MEMORY / records; confirm the budget decrement happens <strong>at the edge</strong> (so an over-budget student is stopped before a Foundry call is spent).</div>
+  </div>
+
+  <div class="callout amber">
+    <strong>None of these blocks launch.</strong> The launch path uses the GA subset (one prompt agent, skill injected per turn, distress gated in the pre-agent classify call, our gateway owning budget/audit). G1-B and the wider Hosted-agent move are <em>target</em> state, adopted as Foundry connected-agents / Hosted agents reach GA (D6). Record the recommendations; revisit the target items at their GA.
+  </div>
+
+  <footer class="foot">
+    La Trobe assistant · Pattern Router / agent-logic open decisions · companion to
+    <a href="infrastructure.html">infrastructure.html</a> (§3.1–§3.2) and
+    <a href="decisions-and-rationale.html">decisions-and-rationale.html</a>
+  </footer>
+</div>
+</body>
+</html>
