@@ -101,10 +101,11 @@
     <div class="eyebrow">La Trobe assistant · solution-architecture review</div>
     <h1>Replicate or duplicate? Build-vs-buy against the managed Microsoft components — and the decisions to present</h1>
     <p class="lead">
-      With Microsoft's managed AI components (Foundry Agent Service, Foundry IQ, Model Router, Azure AI Search,
-      Prompt Shields, managed memory) now shipping, the question is whether our reference design <em>replicates</em>
-      capability we genuinely need to own, or <em>duplicates</em> capability we can now buy. This note answers that
-      component-by-component, validates the design against requirements using current (May 2026) Microsoft
+      Azure AI Foundry is a complete <em>agent platform</em> — you build agents, tools, knowledge and memory
+      <em>inside</em> it (Foundry Agent Service, Foundry IQ, Model Router, Azure AI Search, Prompt Shields, managed
+      memory). The question is which parts of our reference design are <em>differentiators we author into the
+      platform</em>, and which are infrastructure we should <em>stop self-hosting</em> and let the platform provide.
+      This note answers that component-by-component, validates the design against requirements using current Microsoft
       documentation, and sets out six decisions to put to the steering group.
     </p>
     <p class="meta">Companion to <code>infrastructure.html</code> and <code>managed-foundry-alignment-review.html</code> · capability claims verified against Microsoft Learn, doc dates May 2026 · all decisions below are <strong>proposed</strong>, for steering sign-off</p>
@@ -112,19 +113,19 @@
 
   <!-- =========================================================== -->
   <h2>1. The answer in three cards</h2>
-  <p class="section-lead">Both are happening. The job is to keep what differentiates us, stop self-hosting what is now managed, and make two trade-offs explicitly rather than by default.</p>
+  <p class="section-lead">Both are happening. The job is to author what differentiates us <em>inside the Foundry platform</em>, stop self-hosting what the platform now provides, and make two trade-offs explicitly rather than by default.</p>
   <div class="verdict">
     <div class="vcard keep">
-      <div class="label">Keep &amp; build — genuine differentiators</div>
-      <div class="body">Pattern-classification <em>logic</em>, the distress / Express held-state path, the skills &amp; pattern-prompt library, the SAP&nbsp;PO action middleware. No managed equivalent exists.</div>
+      <div class="label">Build inside Foundry — genuine differentiators</div>
+      <div class="body">Pattern-classification <em>logic</em>, the distress / Express held-state path, the skills &amp; pattern-prompt library, the SAP&nbsp;PO action middleware. No managed equivalent — but built <em>inside</em> the Foundry platform (as a Hosted agent, Toolbox tools, a connected governed store), not as a separate stack around it.</div>
     </div>
     <div class="vcard buy">
-      <div class="label">Stop &amp; buy — we are duplicating these</div>
-      <div class="body">Self-hosted retrieval (→ Azure AI Search), custom prompt-injection defence (→ Prompt Shields), hand-rolled per-task model routing (→ Model Router). All GA, all available in Australia East.</div>
+      <div class="label">Use the platform — stop duplicating</div>
+      <div class="body">Self-hosted retrieval (→ Azure AI Search), custom prompt-injection defence (→ Prompt Shields), hand-rolled per-task model routing (→ Model Router). All GA, all in Australia East — and all native platform capabilities of Foundry.</div>
     </div>
     <div class="vcard decide">
       <div class="label">Decided / to decide</div>
-      <div class="body"><strong>D1 is now set</strong> — fully-managed Foundry runtime (AU&nbsp;East) with models kept configurable via the catalogue + Model Router. Still open: which layer owns memory (D5).</div>
+      <div class="body"><strong>D1 is now set</strong> — Foundry as the managed <em>agent platform</em> (AU&nbsp;East), models configurable via the catalogue + Model Router. Still open: which layer owns memory (D5).</div>
     </div>
   </div>
   <div class="callout red">
@@ -140,7 +141,7 @@
   <p class="section-lead">Every application-layer component from <code>infrastructure.html</code>, sorted by whether a managed Microsoft equivalent now exists. Green stays ours; blue moves to managed; amber is a steering decision.</p>
 
   <div class="legend">
-    <span class="key" style="color:#059669"><span class="sw" style="background:#D1FAE5"></span>Keep &amp; build (differentiator)</span>
+    <span class="key" style="color:#059669"><span class="sw" style="background:#D1FAE5"></span>Build inside Foundry (differentiator)</span>
     <span class="key" style="color:#1D4ED8"><span class="sw" style="background:#DBEAFE"></span>Stop &amp; buy (now managed, GA)</span>
     <span class="key" style="color:#B45309"><span class="sw" style="background:#FEF3C7"></span>Decide (trade-off)</span>
   </div>
@@ -484,7 +485,7 @@
     <h3>Per-task model routing — Model Router vs hand-rolled selector</h3>
     <div class="chips"><span class="chip" style="color:var(--success);border-color:rgba(15,123,92,0.35);background:rgba(15,123,92,0.07)">Active · D1 set the path</span><span class="chip">GA for core models</span></div>
     <p class="opt"><b>Context.</b> T16 hand-rolls per-task model assignment (cheap model to classify, stronger to answer). Model Router (GA for the platform's core models) does this as a managed classifier with Cost/Quality/Balanced modes and failover. D1 put us on the managed model path, so Model Router is the natural mechanism for &ldquo;configurable models.&rdquo;</p>
-    <div class="rec"><strong>Adopt Model Router</strong> as the per-task selection mechanism — its Cost/Quality/Balanced modes replace the hand-rolled T16 selector. Keep a thin per-pattern model-selection config above it so model choice stays explicit, auditable, and portable as the in-region catalogue expands. This is how &ldquo;fully managed&rdquo; and &ldquo;models configurable&rdquo; coexist.</div>
+    <div class="rec"><strong>Adopt Model Router</strong> as the per-task selection mechanism — its Cost/Quality/Balanced modes replace the hand-rolled T16 selector. Keep a thin per-pattern model-selection config above it so model choice stays explicit, auditable, and portable as the in-region catalogue expands. This is how &ldquo;fully managed&rdquo; and &ldquo;models configurable&rdquo; coexist. <strong>Region caveat (verified Jun 2026):</strong> Model Router currently deploys only in East US 2 / Sweden Central, not AU East — so at launch use direct in-region model deployments + the config layer, and adopt managed Model Router when it reaches AU East (T17).</div>
   </div>
 
   <div class="dcard" style="border-left-color:var(--amber)">

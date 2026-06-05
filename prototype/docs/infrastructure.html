@@ -261,7 +261,9 @@
         <ol>
           <li><a href="#topology">Topology &mdash; the big picture</a></li>
           <li><a href="#compute">Compute</a></li>
-          <li><a href="#app-services">Application services (pattern router + Foundry runtime)</a></li>
+          <li><a href="#app-services">Application services (pattern router + Foundry runtime)</a>
+            <ul><li><a href="#foundry-zone">3.1 Inside the Foundry zone</a></li></ul>
+          </li>
           <li><a href="#repositories">Repositories (every store, mapped)</a></li>
           <li><a href="#data">Data tier (Azure specifics)</a></li>
           <li><a href="#network">Networking &amp; edge</a></li>
@@ -279,7 +281,7 @@
 
       <!-- ====================================================== -->
       <h2 id="topology">1. Topology &mdash; the big picture</h2>
-      <p class="section-lead">Public traffic enters at Front Door. Identity is Entra. The pieces we build run on Container Apps + Static Web Apps: a <strong>Pattern Router</strong> (the intent-assessment tier) classifies each turn <em>before</em> the model runs, then configures the managed agent. The AI runtime itself is <strong>Azure AI Foundry Agent Service</strong> (managed, AU East &mdash; D1); knowledge grounding is <strong>Azure AI Search</strong> (managed &mdash; D2), and prompt-injection / self-harm safety use <strong>Prompt Shields + Content Safety</strong> (managed &mdash; D3). Three MCP tool servers (also Container Apps) sit between the router and external LTU systems, exposing tools via HTTP/SSE. Repositories span Azure-managed (Postgres, Redis, Blob) and LTU systems (SIS via SAP PO). Model calls stay inside the Foundry catalogue in-region &mdash; no external model-API egress.</p>
+      <p class="section-lead">Public traffic enters at Front Door. Identity is Entra. <strong>The agent is built inside Azure AI Foundry</strong> — the managed <em>agent platform</em> (AU East, D1), not just a model endpoint: its agent runtime, models, tools, knowledge, memory and safety are all Foundry platform constructs (see &sect;3.1). What stays ours is the <em>content</em> of those constructs — the classify-before-answer logic (PR2), the skill prompts, the SAP&nbsp;PO tool implementations, and the governed memory. We also run supporting services on Container Apps: at launch the classify-before-answer orchestration and the three <strong>MCP tool servers</strong> (registered into Foundry as tools, &sect;8); knowledge is <strong>Azure AI Search</strong> connected as grounding (D2); injection / self-harm safety is <strong>Prompt Shields + Content Safety</strong> (D3). Repositories span Azure-managed (Postgres, Redis, Blob) and LTU systems (SIS via SAP PO). Model calls stay inside the Foundry catalogue in-region &mdash; no external model-API egress.</p>
 
       <svg class="diagram" viewBox="0 0 1100 845" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -356,37 +358,40 @@
 
         <!-- Zone C: Foundry managed -->
         <rect x="20" y="286" width="770" height="150" rx="10" fill="none" stroke="#6D28D9" stroke-width="1.2" stroke-dasharray="5,4"/>
-        <text x="34" y="304" font-size="10" font-weight="700" letter-spacing="0.5" fill="#6D28D9">AZURE AI FOUNDRY · MANAGED AI RUNTIME (Australia East · D1)</text>
+        <text x="34" y="302" font-size="10" font-weight="700" letter-spacing="0.5" fill="#6D28D9">AZURE AI FOUNDRY · AGENT PLATFORM (Australia East · D1)</text>
+        <text x="34" y="314" font-size="7.5" fill="#6D28D9" font-style="italic">we build La Trobe's agent INSIDE Foundry — Agents · Models · Tools (§8) · Knowledge · Memory (§4) · Safety are all platform constructs</text>
 
-        <rect x="34" y="316" width="180" height="104" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
-        <text x="124" y="338" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6D28D9">Foundry Agent Service</text>
-        <text x="124" y="356" text-anchor="middle" font-size="8.5" fill="#5B21B6">hosted agent runtime</text>
-        <text x="124" y="370" text-anchor="middle" font-size="8.5" fill="#5B21B6">tool calling · threads</text>
-        <text x="124" y="388" text-anchor="middle" font-size="8" fill="#9F1239" font-weight="700">configured per turn</text>
-        <text x="124" y="404" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">GA · D1</text>
+        <rect x="34" y="320" width="180" height="102" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
+        <text x="124" y="338" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Agents (runtime)</text>
+        <text x="124" y="354" text-anchor="middle" font-size="8" fill="#5B21B6">our pattern logic runs here</text>
+        <text x="124" y="367" text-anchor="middle" font-size="8" fill="#5B21B6">prompt agent (GA) at launch</text>
+        <text x="124" y="380" text-anchor="middle" font-size="8" fill="#5B21B6">Hosted agent = target</text>
+        <text x="124" y="393" text-anchor="middle" font-size="8" fill="#9F1239" font-weight="700">configured per turn</text>
+        <text x="124" y="408" text-anchor="middle" font-size="7.5" fill="#6D28D9" font-style="italic">prompt GA · hosted preview · D1</text>
 
-        <rect x="224" y="316" width="180" height="104" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
-        <text x="314" y="338" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6D28D9">Model Router + Catalog</text>
-        <text x="314" y="356" text-anchor="middle" font-size="8.5" fill="#5B21B6">Cost/Quality/Balanced</text>
-        <text x="314" y="370" text-anchor="middle" font-size="8.5" fill="#5B21B6">GPT-family · AU East</text>
-        <text x="314" y="388" text-anchor="middle" font-size="8" fill="#5B21B6">no model in code</text>
-        <text x="314" y="404" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">GA core · D4 · T16</text>
+        <rect x="224" y="320" width="180" height="102" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
+        <text x="314" y="338" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Models</text>
+        <text x="314" y="354" text-anchor="middle" font-size="8" fill="#5B21B6">catalogue + Model Router</text>
+        <text x="314" y="367" text-anchor="middle" font-size="8" fill="#5B21B6">GPT-family deployed AU East</text>
+        <text x="314" y="380" text-anchor="middle" font-size="7.5" fill="#9F1239">Model Router: EUS2/Sweden today</text>
+        <text x="314" y="393" text-anchor="middle" font-size="8" fill="#5B21B6">no model in code</text>
+        <text x="314" y="408" text-anchor="middle" font-size="7.5" fill="#6D28D9" font-style="italic">D4 · T16</text>
 
-        <rect x="414" y="316" width="180" height="104" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
-        <text x="504" y="336" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Prompt Shields +</text>
-        <text x="504" y="350" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Content Safety</text>
-        <text x="504" y="368" text-anchor="middle" font-size="8" fill="#5B21B6">direct + XPIA injection</text>
-        <text x="504" y="382" text-anchor="middle" font-size="8" fill="#5B21B6">self-harm severity →</text>
-        <text x="504" y="394" text-anchor="middle" font-size="8" fill="#5B21B6">distress classifier</text>
-        <text x="504" y="412" text-anchor="middle" font-size="8" fill="#6D28D9" font-style="italic">GA · D3</text>
+        <rect x="414" y="320" width="180" height="102" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
+        <text x="504" y="338" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Knowledge</text>
+        <text x="504" y="354" text-anchor="middle" font-size="8" fill="#5B21B6">connected Azure AI Search</text>
+        <text x="504" y="367" text-anchor="middle" font-size="8" fill="#5B21B6">vector + hybrid + semantic</text>
+        <text x="504" y="380" text-anchor="middle" font-size="8" fill="#5B21B6">grounding for the agent</text>
+        <text x="504" y="396" text-anchor="middle" font-size="7.5" fill="#6D28D9">Foundry IQ (preview) later</text>
+        <text x="504" y="410" text-anchor="middle" font-size="7.5" fill="#1D4ED8" font-style="italic">AI Search GA · D2</text>
 
-        <rect x="604" y="316" width="172" height="104" rx="6" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="1.6"/>
-        <text x="690" y="338" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1D4ED8">Azure AI Search</text>
-        <text x="690" y="356" text-anchor="middle" font-size="8" fill="#1E40AF">vector+hybrid+semantic</text>
-        <text x="690" y="370" text-anchor="middle" font-size="8" fill="#1E40AF">managed retrieval</text>
-        <text x="690" y="384" text-anchor="middle" font-size="8" fill="#1E40AF">replaces self-host pipe</text>
-        <text x="690" y="400" text-anchor="middle" font-size="8" fill="#1D4ED8" font-style="italic">GA · D2</text>
-        <text x="690" y="412" text-anchor="middle" font-size="7.5" fill="#6D28D9">Foundry IQ (preview) later</text>
+        <rect x="604" y="320" width="172" height="102" rx="6" fill="#EDE9FE" stroke="#6D28D9" stroke-width="1.6"/>
+        <text x="690" y="338" text-anchor="middle" font-size="10" font-weight="700" fill="#6D28D9">Safety · identity</text>
+        <text x="690" y="354" text-anchor="middle" font-size="8" fill="#5B21B6">Prompt Shields (direct+XPIA)</text>
+        <text x="690" y="367" text-anchor="middle" font-size="8" fill="#5B21B6">Content Safety severity →</text>
+        <text x="690" y="380" text-anchor="middle" font-size="8" fill="#5B21B6">seeds our Express flow</text>
+        <text x="690" y="393" text-anchor="middle" font-size="8" fill="#5B21B6">Entra agent identity</text>
+        <text x="690" y="408" text-anchor="middle" font-size="7.5" fill="#6D28D9" font-style="italic">GA · D3</text>
 
         <!-- Zone D: MCP tool servers -->
         <rect x="20" y="448" width="770" height="92" rx="10" fill="none" stroke="#0369A1" stroke-width="1.2" stroke-dasharray="5,4"/>
@@ -573,7 +578,7 @@
 
       <!-- ====================================================== -->
       <h2 id="compute">2. Compute</h2>
-      <p class="section-lead">Where the services we build run. The AI runtime is not here &mdash; it is the managed Foundry Agent Service (&sect;3). Two Azure-native compute primitives at launch.</p>
+      <p class="section-lead">Where the supporting services we build run. The agent itself is built and run <em>inside Azure AI Foundry</em> (the agent platform, &sect;3.1) — not here. These primitives host the orchestration, the MCP tool servers and the frontend. Two Azure-native compute primitives at launch.</p>
 
       <table>
         <thead><tr><th>Component</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
@@ -582,7 +587,7 @@
             <td class="component">Agent Gateway · Pattern Router</td>
             <td class="shape"><span class="tag azure">Azure</span></td>
             <td class="choice">Container Apps · Premium</td>
-            <td class="why">Stateless · KEDA autoscale · scale-to-zero · blue/green via revisions. Hosts the Pattern Router (classify-before-Foundry), the distress classifier, the safety subsystem and the MCP client. The agent runtime itself is the managed Foundry Agent Service (D1); retrieval is managed Azure AI Search (D2).</td>
+            <td class="why">Stateless · KEDA autoscale · scale-to-zero · blue/green via revisions. Hosts the classify-before-answer orchestration, the distress classifier, the safety subsystem and the MCP tool servers. The agent itself is built and run inside Azure AI Foundry (the agent platform, D1 — §3.1); knowledge is connected Azure AI Search (D2). Target: the orchestration moves inside Foundry as a Hosted agent.</td>
           </tr>
           <tr>
             <td class="component">Frontend</td>
@@ -600,8 +605,8 @@
       </table>
 
       <!-- ====================================================== -->
-      <h2 id="app-services">3. Application services <span class="pill">router we build + managed Foundry runtime</span></h2>
-      <p class="section-lead">Two halves. The <strong>Pattern Router</strong> is a TS / Node service we own, running on Container Apps: it classifies the turn, selects the skill prompt and the per-task model, enforces budgets and audit, and acts as the MCP client. It then invokes the <strong>managed Foundry Agent Service</strong>, which hosts the agent runtime, grounding and tool-calling. Per the settled build/buy split (D1&ndash;D4), what we keep is the intent-assessment, safety, personalisation and tool tiers <em>around</em> Foundry; what we stop self-hosting is the runtime, retrieval, injection defence and per-task routing.</p>
+      <h2 id="app-services">3. Application services <span class="pill">our agent + tools, built inside Azure AI Foundry</span></h2>
+      <p class="section-lead"><strong>We build La&nbsp;Trobe's agent inside the Foundry platform</strong> (not as a separate stack wrapped around a model endpoint — see &sect;3.1 for the platform pillars). The pieces below are the <em>content</em> we author into Foundry's constructs: the classify-before-answer logic and skill prompts (the agent), the MCP tool implementations (Foundry tools), the curated corpus (knowledge), and the governed-memory rules (memory). At launch the orchestration runs as a prompt agent + a Container Apps service; the target is to move it inside Foundry as a Hosted agent (preview, D6). What we stop self-hosting is the runtime, retrieval, injection defence and per-task routing — those are Foundry platform capabilities (D1&ndash;D4).</p>
 
       <table>
         <thead><tr><th>Service</th><th>Shape</th><th>Choice</th><th>Why</th></tr></thead>
@@ -681,8 +686,59 @@
         </tbody>
       </table>
 
+      <h3 id="foundry-zone">3.1 Inside Azure AI Foundry — the agent platform</h3>
+      <p class="section-lead"><strong>Azure AI Foundry is a complete agent platform, not just a model runtime</strong> (D1). The agent, its tools, its knowledge and its memory are all <em>built inside Foundry</em> as first-class platform constructs — Foundry hosts, scales, secures, identifies and observes them. What stays <em>ours</em> is the <em>content</em> of those constructs: the classify-before-answer logic, the SAP&nbsp;PO tool implementations, the curated knowledge, and the governed-memory rules. The correct mental model is <strong>build-inside, not wrap-around</strong>: we are not a separate stack bolted in front of a model endpoint; we are building La&nbsp;Trobe's agent <em>within</em> the Foundry platform, using its pillars below.</p>
+
+      <table>
+        <thead><tr><th>Foundry pillar</th><th>What the platform provides</th><th>What we build inside it</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="component">Agents (runtime)</td>
+            <td class="choice">Foundry hosts &amp; runs the agent — <strong>prompt agents</strong> (config-only) or <strong>Hosted agents</strong> (your own code: Agent Framework, LangGraph, custom), with managed endpoint, scaling, identity and lifecycle</td>
+            <td class="why">Our pattern model lives here. The classifier + skill selection (PR2) is the agent's logic. <strong>At launch</strong> it runs as prompt-agent configuration + our skill prompts; <strong>target</strong> is a Hosted agent so the classify-before-answer orchestration runs inside Foundry as code (updates T1).</td>
+            <td class="why">prompt GA · hosted preview (D6)</td>
+          </tr>
+          <tr>
+            <td class="component">Models</td>
+            <td class="choice">Foundry model catalogue + <strong>Model Router</strong> (Cost / Quality / Balanced, failover)</td>
+            <td class="why">Per-task model selection, config not code; no model named in code (D4 · T16). GPT-family deployed <strong>in AU East</strong> at launch. <span class="navy-strong">Caveat (verified Jun 2026):</span> Model Router itself currently deploys only in East US 2 / Sweden Central — at launch use direct in-region deployments + our config layer; adopt Model Router when it reaches AU East. Also where the <strong>PTU / census</strong> ceiling lives.</td>
+            <td class="why">models GA in AU East · Model Router GA but out-of-region</td>
+          </tr>
+          <tr>
+            <td class="component">Tools</td>
+            <td class="choice">Foundry tool catalogue + <strong>Toolbox</strong> — register tools, incl. custom MCP servers, behind one MCP endpoint with managed auth</td>
+            <td class="why">Our three MCP servers (<code>ltu-records</code> · <code>ltu-actions</code> · <code>ltu-wellbeing</code> → SAP&nbsp;PO) are registered as <strong>Foundry tools</strong> (&sect;8). The tool implementations + SAP&nbsp;PO routing / idempotency / audit are ours; Foundry handles discovery, auth and invocation.</td>
+            <td class="why">tools GA · Toolbox preview</td>
+          </tr>
+          <tr>
+            <td class="component">Knowledge</td>
+            <td class="choice">Foundry grounding — connected <strong>Azure AI Search</strong> today; <strong>Foundry IQ</strong> agentic retrieval (preview) later</td>
+            <td class="why">The LTU corpus (Handbook · FAQ · portal) indexed in Azure AI Search and connected as the agent's grounding source — how "what is SSAF?" gets a cited answer (D2, supersedes the self-hosted Docling / LlamaIndex / pgvector / BGE stack).</td>
+            <td class="why">AI Search GA · Foundry IQ preview (D6)</td>
+          </tr>
+          <tr>
+            <td class="component">Memory</td>
+            <td class="choice">Foundry managed memory tool (preview) — or connect your own governed store</td>
+            <td class="why">We <strong>connect our own governed MEMORY</strong> (USER profile + bounded, sanitised, RLS facts) as the system of record rather than adopt managed memory (D5) — sanitisation, bounding, residency and the pattern-tagged analytics log depend on owning it. Revisit Foundry managed memory at GA.</td>
+            <td class="why">our store at launch · Foundry memory preview</td>
+          </tr>
+          <tr>
+            <td class="component">Safety · identity · observability</td>
+            <td class="choice">Built-in <strong>content filters / guardrails</strong> (incl. XPIA / Prompt Shields), <strong>Entra agent identity</strong>, and <strong>App Insights</strong> tracing — platform-level, every agent</td>
+            <td class="why">Prompt Shields screens direct + indirect injection (D3, supersedes SEC6/7); Content Safety self-harm severity <strong>seeds our Express/distress flow</strong> (the held-state, review queue and in-channel handoff stay ours). Each agent gets a dedicated Entra identity for scoped tool/data access; every turn traces to App Insights.</td>
+            <td class="why">GA · D3</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout green">
+        <strong>Launch vs target — the GA subset is real today; the platform-native pieces firm up as they reach GA (D6).</strong>
+        <strong>At launch (GA):</strong> a prompt agent running our skill prompts, models deployed in AU East, our MCP servers connected as tools, Azure AI Search as connected knowledge, our governed memory store, content safety + Entra identity + tracing.
+        <strong>Target (preview today, design toward):</strong> the agent as a <em>Hosted agent</em> (our orchestration as code inside Foundry), Foundry IQ for agentic retrieval, Model Router in AU East, and a revisit of Foundry managed memory. No preview feature sits on a launch-critical path.
+      </div>
+
       <!-- ====================================================== -->
-      <h2 id="repositories">4. Repositories <span class="pill">every Phase-1 store, mapped</span></h2>
+      <h2 id="repositories">4. Repositories <span class="pill">every store, mapped</span></h2>
       <p class="section-lead">Every repository called out in the personalisation briefing's Page 4, mapped to its deployment shape. Some are Azure-managed; some are LTU systems of record; some are git-versioned config; some are external SaaS.</p>
 
       <h3>Structured repositories</h3>
@@ -757,7 +813,7 @@
 
       <!-- ====================================================== -->
       <h2 id="mcp">8. MCP tool servers</h2>
-      <p class="section-lead">Three MCP (Model Context Protocol) servers run as Container Apps services within the same environment as the Pattern Router. They are internal only — no public endpoint. The router/gateway is the MCP client; tool calls the Foundry agent requests are executed through these servers before reaching external LTU systems. This makes the tool implementations independently deployable, separately scalable, and reusable across any future agent without modifying router code. They stay ours under the build/buy split (D1) — SAP PO routing, idempotency and audit have no managed equivalent. CLI-binary tools (subprocess) were considered and rejected for the reasons recorded in T19 — connection lifecycle against SAP PO and Postgres at census-load spikes, and the loss of a per-tool auth boundary independent of the router.</p>
+      <p class="section-lead">Three MCP (Model Context Protocol) servers run as Container Apps services, internal only — no public endpoint. These are the <strong>Tools pillar of the Foundry platform</strong> (&sect;3.1): each server is <strong>registered into Foundry as a tool</strong> (via the tool catalogue / Toolbox), so the Foundry agent discovers and invokes them with managed auth — we don't hand-wire a client. The tool <em>implementations</em> stay ours: SAP&nbsp;PO routing, idempotency and audit have no managed equivalent (D1). Hosting them as standalone MCP servers on Container Apps is Microsoft's documented first-class pattern (Entra auth, managed identity, scale-to-zero); the platform-managed dynamic-sessions MCP runs only Python/shell, so it's not a fit for typed LTU tools. CLI-binary tools (subprocess) were considered and rejected per T19 — connection lifecycle against SAP PO and Postgres at census spikes, and the loss of a per-tool auth boundary.</p>
 
       <table>
         <thead><tr><th>Server</th><th>Shape</th><th>Tools exposed</th><th>Downstream</th><th>Why</th></tr></thead>

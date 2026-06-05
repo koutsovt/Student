@@ -83,7 +83,7 @@
       How the merged architecture was reached. The managed-Foundry infrastructure diagram was read against our
       reference design (<code>infrastructure.html</code>): the managed-first framing was sound and kept, but as drawn it
       dropped the intent-assessment tier that is the whole point of replacing Charlie. The merge keeps the Foundry
-      managed layer and restores our differentiators in front of it. The runtime/provider questions this raised are
+      managed platform and restores our differentiators as constructs built inside it. The runtime/provider questions this raised are
       now settled in <strong>D1&ndash;D6</strong> &mdash; this note records the merged design; the rationale lives in the
       decisions log and the build-vs-buy review.
     </p>
@@ -109,9 +109,10 @@
   <div class="callout red">
     <strong>Why the Pattern Router stays ours:</strong> the Foundry diagram ran one generic agent with no
     classifier, so every request took the same retrieve-and-answer path regardless of what the student wanted
-    &mdash; that is Charlie's purpose-blindness. So the classify-before-retrieval tier sits in front of Foundry,
-    built by us. (Model-level routing is now managed via Model Router (D4); the <em>intent</em> classification
-    logic is what has no managed equivalent &mdash; and it is the business case.)
+    &mdash; that is Charlie's purpose-blindness. So <strong>classify-before-answer is the agent's own first step</strong>,
+    built by us <em>inside</em> Foundry (as a prompt agent at launch, a Hosted agent as the target). (Model-level
+    routing is now managed via Model Router (D4); the <em>intent</em> classification logic is what has no managed
+    equivalent &mdash; and it is the business case.)
   </div>
 
   <!-- =========================================================== -->
@@ -172,16 +173,27 @@
   </table>
 
   <div class="callout green">
-    <strong>Architectural insight behind the merge.</strong> In a Foundry-managed world the classifier doesn't
-    disappear — it moves <em>in front</em> of Foundry. Our gateway becomes a <strong>Pattern Router</strong> that
-    (1) classifies the turn, (2) selects the matching skill prompt and the per-task model, and (3) invokes the
-    Foundry Agent Service configured for that turn. Foundry runs the agent and grounding; we own the
-    intent-assessment, safety, personalisation, and tool tiers around it.
+    <strong>Architectural insight behind the merge.</strong> Azure AI Foundry is a complete <em>agent platform</em>,
+    not just a model runtime — you build agents, tools, knowledge and memory <em>inside</em> it. So the classifier
+    doesn't disappear and it isn't a separate stack bolted on: it becomes the <strong>first step of the agent we
+    build inside Foundry</strong>. The agent (1) classifies the turn, (2) selects the matching skill prompt and the
+    per-task model, and (3) proceeds with grounding and tools. Our differentiators — the classify-before-answer
+    logic, the skill library, the SAP&nbsp;PO tools, the governed memory — are the <em>content</em> we author into
+    Foundry's platform constructs; Foundry provides the runtime, scaling, identity, safety and observability.
+  </div>
+
+  <div class="callout amber">
+    <strong>Framing update (reading the diagram below).</strong> This diagram was first drawn with our tier
+    &ldquo;in front of&rdquo; and &ldquo;around&rdquo; Foundry — the older <em>Foundry-as-model-runtime</em> mental
+    model. The correct model is <strong>Foundry-as-platform</strong>: the left/right zones show what <em>we author</em>
+    (the agent's logic, tools, knowledge, memory), but they are <strong>built inside the Foundry platform</strong> as
+    a Hosted agent, Toolbox tools, connected knowledge and a connected governed store — not a separate external stack.
+    Read &ldquo;in front&rdquo; as <em>sequence</em> (classify first), not <em>topology</em>.
   </div>
 
   <!-- =========================================================== -->
   <h2>3. Merged architecture</h2>
-  <p class="section-lead">Foundry managed AI runtime in the centre; our pattern-assessment tier in front of it; our tools, data/personalisation, and ingestion around it. Boxes outlined in <strong style="color:var(--ltu-red)">La Trobe red</strong> are the differentiators re-inserted from our reference design.</p>
+  <p class="section-lead">Azure AI Foundry as the agent platform; the differentiators we author — the classifier/agent logic, skills, tools, data/personalisation, and ingestion — are built <em>inside</em> it as platform constructs (see the framing-update note above). Boxes outlined in <strong style="color:var(--ltu-red)">La Trobe red</strong> are the differentiators re-inserted from our reference design.</p>
 
   <div class="legend">
     <span class="key" style="color:#5B21B6"><span class="sw" style="background:#EDE9FE"></span>Inside Azure AI Foundry (managed AI)</span>
@@ -192,7 +204,7 @@
     <span class="key" style="color:#C8102E"><span class="sw" style="border-style:dashed;background:#fff"></span>★ Re-inserted from our solution</span>
   </div>
 
-  <svg viewBox="0 0 1460 1110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Merged La Trobe assistant architecture: Azure AI Foundry managed runtime wrapped by a custom pattern-assessment tier">
+  <svg viewBox="0 0 1460 1110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Merged La Trobe assistant architecture: La Trobe's agent, tools, knowledge and memory built inside the Azure AI Foundry agent platform">
     <defs>
       <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L7,3 z" fill="#94A3B8"/></marker>
       <marker id="arRed" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L7,3 z" fill="#C8102E"/></marker>
@@ -257,7 +269,7 @@
 
     <!-- ===== CENTER: Foundry managed ===== -->
     <rect x="390" y="110" width="650" height="455" rx="16" fill="#FBFAFF" stroke="#6D28D9" stroke-width="2" stroke-dasharray="9,6"/>
-    <text x="410" y="134" class="sec" fill="#6D28D9">INSIDE AZURE AI FOUNDRY · MANAGED AI RUNTIME</text>
+    <text x="410" y="134" class="sec" fill="#6D28D9">AZURE AI FOUNDRY · AGENT PLATFORM (agents · tools · knowledge · memory built inside)</text>
 
     <rect x="415" y="150" width="288" height="158" rx="12" fill="#EDE9FE" stroke="#6D28D9" stroke-width="2" filter="url(#sh)"/>
     <text x="559" y="173" text-anchor="middle" class="t-title" fill="#6D28D9">Foundry Agent Service</text>
@@ -291,7 +303,7 @@
     <text x="872" y="383" text-anchor="middle" class="t-sub" fill="#1E40AF">replaces self-host pgvector / rerank</text>
     <text x="872" y="403" text-anchor="middle" class="t-tiny" fill="#1D4ED8">(unless custom retrieval quality is needed)</text>
 
-    <text x="715" y="488" text-anchor="middle" class="t-tiny" fill="#5B21B6" font-style="italic">Managed runtime + grounding. Our pattern tier sits in front; our tools, data &amp; ingestion sit around it.</text>
+    <text x="715" y="488" text-anchor="middle" class="t-tiny" fill="#5B21B6" font-style="italic">The agent platform. Our agent logic, tools, knowledge &amp; memory are authored inside it — the side zones show what we build, not a separate stack.</text>
 
     <!-- ===== RIGHT: tools & action services ===== -->
     <rect x="1080" y="110" width="350" height="455" rx="16" fill="#F0FDF4" stroke="#059669" stroke-width="2" stroke-dasharray="9,6"/>
@@ -526,7 +538,7 @@
 
   <h3>What changed in the merge (reading the diagram)</h3>
   <ul class="tight">
-    <li><strong>Pattern Router added in front of Foundry (left, red box).</strong> The gateway classifies the turn, picks the skill prompt and the per-task model, then invokes the Foundry Agent Service configured for that turn. This is the structural fix for purpose-blindness.</li>
+    <li><strong>Pattern Router = the agent's first step, built inside Foundry (left, red box).</strong> It classifies the turn, picks the skill prompt and the per-task model, then proceeds with grounding and tools. Built as a prompt agent at launch, a Hosted agent as the target — not a separate external tier. This is the structural fix for purpose-blindness.</li>
     <li><strong>Skills &amp; pattern-prompt library re-inserted (red band).</strong> Six git-versioned skill prompts (four reactive wired at launch; Nudge + Check-in in a follow-up release) feed the agent's per-turn instructions; classifier prompts feed the router. A/B and rollback via Container Apps revisions.</li>
     <li><strong>Express / distress path restored (right, red boxes).</strong> Distress classifier in the router + <code>ltu-wellbeing-mcp</code> + Redis hold state give the in-channel advisor handoff with held conversation state.</li>
     <li><strong>Personalisation tier expanded (centre-lower, red title).</strong> USER profile, bounded sanitised MEMORY, session log, and the pattern-tagged log that powers cohort analytics.</li>
